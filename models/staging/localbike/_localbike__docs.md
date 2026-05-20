@@ -34,3 +34,22 @@ current price in `stg_localbike__products`.
 
 **Downstream:** `int_order_items__enriched`
 {% enddocs %}
+
+{% docs stg_localbike__products %}
+Staging model for the `products` source table.
+
+One row per product. Serves as the product reference catalogue for Local Bike.
+
+**Cleaning applied:**
+
+- `model_year` cast to `INT64`
+- `list_price` cast to `FLOAT64`
+
+**Grain:** one row per `product_id`
+
+**Note:** `list_price` here reflects the current catalogue price.
+The price actually charged on an order is captured in
+`stg_localbike__order_items.list_price`.
+
+**Downstream:** `int_order_items__enriched`
+{% enddocs %}

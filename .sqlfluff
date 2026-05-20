@@ -2,13 +2,12 @@
 dialect = bigquery
 templater = dbt
 runaway_limit = 10
-
-# Line length — 88 chars (same as Black for Python)
 max_line_length = 88
-
-# Indentation
 indent_unit = space
 tab_space_size = 4
+
+# Exclude generated and third-party directories from linting
+ignore_paths = dbt_packages,target
 
 [sqlfluff:templater:dbt]
 project_dir = .
