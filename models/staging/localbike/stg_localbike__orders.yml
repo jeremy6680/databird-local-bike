@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: stg_localbike__orders
+    description: "{{ doc('stg_localbike__orders') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'orders')
+
+    columns:
+      - name: order_id
+        description: "Unique identifier for each order (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: "Foreign key to stg_localbike__customers."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__customers')
+              field: customer_id
+
+      - name: store_id
+        description: "Foreign key to stg_localbike__stores."
+        data_tests:
+          - not_null
+
+      - name: staff_id
+        description: "Foreign key to stg_localbike__staffs."
+        data_tests:
+          - not_null
+
+      - name: order_status
+        description: "Order status code (integer). 1=Status_1, 2=Status_2, 3=Status_3, 4=Completed."
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+
+      - name: order_status_label
+        description: "Human-readable label derived from order_status."
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status_label
+              arguments:
+                values: ["Status_1", "Status_2", "Status_3", "Completed"]
+
+      - name: order_date
+        description: "Date the order was placed."
+        data_tests:
+          - not_null
+
+      - name: required_date
+        description: "Date by which the customer expects delivery."
+        data_tests:
+          - not_null
+
+      - name: shipped_date
+        description: "Date the order was shipped. Nullable — null if not yet shipped."
+
+      - name: days_to_ship
+        description: "Difference in days between shipped_date and required_date. Positive = late. Null if not yet shipped."
