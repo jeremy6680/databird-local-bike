@@ -1,0 +1,112 @@
+name: CI — Slim build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dbt-ci:
+    name: dbt slim CI
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_PROJECT_ID: ${{ secrets.DBT_PROJECT_ID }}
+      DBT_DATASET: ${{ secrets.DBT_DATASET }}
+
+    steps:
+      # --------------------------------------------------------
+      # 1. Checkout PR code
+      # --------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------
+      # 2. Set up Python 3.11
+      # --------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # --------------------------------------------------------
+      # 3. Install Python dependencies (dbt-core + dbt-bigquery)
+      # --------------------------------------------------------
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # --------------------------------------------------------
+      # 4. Write profiles.yml from GitHub Secrets
+      #    Never hardcode credentials — always injected at runtime
+      # --------------------------------------------------------
+      - name: Write profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          local_bike:
+            target: ci
+            outputs:
+              ci:
+                type: bigquery
+                method: service-account-json
+                project: ${{ secrets.DBT_PROJECT_ID }}
+                dataset: ${{ secrets.DBT_DATASET }}
+                keyfile_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+                location: EU
+                threads: 4
+                timeout_seconds: 300
+          EOF
+
+      # --------------------------------------------------------
+      # 5. Download the production manifest.json artifact
+      #    Used by dbt as the --state reference for state:modified+
+      #    NOTE: this artifact is uploaded by the CD workflow after
+      #    each successful production deployment. The CI will fail
+      #    on the very first run (before any CD has run) — this is
+      #    expected. Run the CD workflow first to bootstrap the artifact.
+      # --------------------------------------------------------
+      - name: Download production manifest
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          name: prod-manifest
+          path: ./prod-manifest
+          workflow: cd.yml
+          branch: main
+          if_no_artifact_found: warn
+
+      # --------------------------------------------------------
+      # 6. Install dbt packages (dbt-utils, dbt-codegen, etc.)
+      # --------------------------------------------------------
+      - name: dbt deps
+        run: dbt deps
+
+      # --------------------------------------------------------
+      # 7. Run only modified models and their downstream dependencies
+      #    --defer   : resolves ref() on unmodified models to prod tables
+      #    --state   : compares current manifest against prod-manifest
+      # --------------------------------------------------------
+      - name: dbt run (slim — state:modified+)
+        run: |
+          dbt run \
+            --select state:modified+ \
+            --defer \
+            --state ./prod-manifest \
+            --target ci
+
+      # --------------------------------------------------------
+      # 8. Test only modified models and their downstream dependencies
+      # --------------------------------------------------------
+      - name: dbt test (slim — state:modified+)
+        run: |
+          dbt test \
+            --select state:modified+ \
+            --defer \
+            --state ./prod-manifest \
+            --target ci
+
+      # --------------------------------------------------------
+      # 9. Generate docs — validates that documentation compiles
+      #    cleanly without mixing it into the run/test signal
+      # --------------------------------------------------------
+      - name: dbt docs generate
+        run: dbt docs generate --target ci

@@ -1,0 +1,95 @@
+name: CD — Production deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  dbt-cd:
+    name: dbt full deploy
+    runs-on: ubuntu-latest
+
+    env:
+      DBT_PROJECT_ID: ${{ secrets.DBT_PROJECT_ID }}
+      DBT_DATASET: ${{ secrets.DBT_DATASET }}
+
+    steps:
+      # --------------------------------------------------------
+      # 1. Checkout main branch
+      # --------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --------------------------------------------------------
+      # 2. Set up Python 3.11
+      # --------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # --------------------------------------------------------
+      # 3. Install Python dependencies (dbt-core + dbt-bigquery)
+      # --------------------------------------------------------
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # --------------------------------------------------------
+      # 4. Write profiles.yml from GitHub Secrets
+      #    Never hardcode credentials — always injected at runtime
+      # --------------------------------------------------------
+      - name: Write profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOF > ~/.dbt/profiles.yml
+          local_bike:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account-json
+                project: ${{ secrets.DBT_PROJECT_ID }}
+                dataset: ${{ secrets.DBT_DATASET }}
+                keyfile_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+                location: EU
+                threads: 4
+                timeout_seconds: 300
+          EOF
+
+      # --------------------------------------------------------
+      # 5. Install dbt packages (dbt-utils, dbt-codegen, etc.)
+      # --------------------------------------------------------
+      - name: dbt deps
+        run: dbt deps
+
+      # --------------------------------------------------------
+      # 6. Full run — all models against production dataset
+      # --------------------------------------------------------
+      - name: dbt run
+        run: dbt run --target prod
+
+      # --------------------------------------------------------
+      # 7. Run all tests against production dataset
+      # --------------------------------------------------------
+      - name: dbt test
+        run: dbt test --target prod
+
+      # --------------------------------------------------------
+      # 8. Generate documentation
+      # --------------------------------------------------------
+      - name: dbt docs generate
+        run: dbt docs generate --target prod
+
+      # --------------------------------------------------------
+      # 9. Upload manifest.json as a GitHub Actions artifact
+      #    This artifact is downloaded by the CI workflow to
+      #    perform state:modified+ comparison on pull requests.
+      #    Overwrites the previous artifact on every successful deploy.
+      # --------------------------------------------------------
+      - name: Upload production manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-manifest
+          path: ./target/manifest.json
+          retention-days: 90

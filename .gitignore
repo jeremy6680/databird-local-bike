@@ -10,6 +10,7 @@ logs/
 # ============================================================
 profiles.yml
 .env
+.envrc
 *.json.key
 
 # ============================================================
@@ -19,14 +20,19 @@ profiles.yml
 *.duckdb.wal
 
 # ============================================================
-# Claude AI context file
+# Internal project documentation — local only (never committed)
+# ============================================================
+_docs/
+
+# ============================================================
+# Claude AI context file — local only
 # ============================================================
 CLAUDE.md
 
 # ============================================================
-# Internal project documentation — local only
+# NOTE: docs/ is intentionally NOT ignored — it is a committed
+# folder containing public project deliverables (specifications.md)
 # ============================================================
-_docs/
 
 # ============================================================
 # Python

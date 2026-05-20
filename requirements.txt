@@ -1,0 +1,7 @@
+# dbt Core latest stable with dbt-bigquery 1.11.x
+dbt-core==1.11.10
+dbt-bigquery==1.11.1
+
+# linting & formatting
+sqlfluff==3.3.1
+sqlfluff-templater-dbt==3.3.1
