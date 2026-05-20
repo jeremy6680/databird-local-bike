@@ -1,0 +1,35 @@
+[sqlfluff]
+dialect = bigquery
+templater = dbt
+runaway_limit = 10
+
+# Line length — 88 chars (same as Black for Python)
+max_line_length = 88
+
+# Indentation
+indent_unit = space
+tab_space_size = 4
+
+[sqlfluff:templater:dbt]
+project_dir = .
+
+[sqlfluff:rules:layout.indent]
+indent_unit = space
+
+[sqlfluff:rules:aliasing.table]
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+aliasing = explicit
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = upper

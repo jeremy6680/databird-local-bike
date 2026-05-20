@@ -10,18 +10,18 @@
 -- Consumed by: int_orders__enriched
 -- =============================================================================
 
-with
+WITH
 
-source as (
+source AS (
 
     -- Pull all raw rows from the orders source table
-    select * from {{ source('localbike', 'orders') }}
+    SELECT * FROM {{ source('localbike', 'orders') }}
 
 ),
 
-renamed as (
+renamed AS (
 
-    select
+    SELECT
 
         -- -----------------------------------------------------------------------
         -- Primary key
@@ -41,24 +41,24 @@ renamed as (
         -- 1 = Pending, 2 = Processing, 3 = Rejected, 4 = Completed
         -- Reference: DataBird dataset documentation
         -- -----------------------------------------------------------------------
-        cast(order_status as INT64) as order_status,
+        CAST(order_status AS INT64) AS order_status,
 
-        case cast(order_status as INT64)
-            when 1 then 'Status_1'  -- TODO: confirm label with DataBird
-            when 2 then 'Status_2'  -- TODO: confirm label with DataBird
-            when 3 then 'Status_3'  -- TODO: confirm label with DataBird
-            when 4 then 'Completed' -- confirmed: shipped_date always present
-            else 'Unknown'
-        end as order_status_label,
+        CASE CAST(order_status AS INT64)
+            WHEN 1 THEN 'Status_1'  -- TODO: confirm label with DataBird
+            WHEN 2 THEN 'Status_2'  -- TODO: confirm label with DataBird
+            WHEN 3 THEN 'Status_3'  -- TODO: confirm label with DataBird
+            WHEN 4 THEN 'Completed' -- confirmed: shipped_date always present
+            ELSE 'Unknown'
+        END AS order_status_label,
 
         -- -----------------------------------------------------------------------
         -- Dates — cast to DATE (source may store as STRING or TIMESTAMP)
         -- -----------------------------------------------------------------------
-        cast(order_date    as DATE) as order_date,
-        cast(required_date as DATE) as required_date,
+        CAST(order_date AS DATE) AS order_date,
+        CAST(required_date AS DATE) AS required_date,
 
         -- shipped_date is nullable: an order may not yet have shipped
-        cast(shipped_date  as DATE) as shipped_date,
+        CAST(shipped_date AS DATE) AS shipped_date,
 
         -- -----------------------------------------------------------------------
         -- Derived column: shipping delay in calendar days
@@ -67,14 +67,14 @@ renamed as (
         -- NULL when shipped_date is null (order not yet shipped)
         -- Used by the orders mart for the on-time delivery KPI
         -- -----------------------------------------------------------------------
-        date_diff(
-            cast(shipped_date  as DATE),
-            cast(required_date as DATE),
-            day
-        ) as days_to_ship
+        DATE_DIFF(
+            CAST(shipped_date AS DATE),
+            CAST(required_date AS DATE),
+            DAY
+        ) AS days_to_ship
 
-    from source
+    FROM source
 
 )
 
-select * from renamed
+SELECT * FROM renamed

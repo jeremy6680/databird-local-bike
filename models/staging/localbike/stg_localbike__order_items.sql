@@ -9,18 +9,18 @@
 -- Consumed by: int_order_items__enriched
 -- =============================================================================
 
-with
+WITH
 
-source as (
+source AS (
 
     -- Pull all raw rows from the order_items source table
-    select * from {{ source('localbike', 'order_items') }}
+    SELECT * FROM {{ source('localbike', 'order_items') }}
 
 ),
 
-renamed as (
+renamed AS (
 
-    select
+    SELECT
 
         -- -----------------------------------------------------------------------
         -- Primary key (composite: one row per order line)
@@ -38,35 +38,35 @@ renamed as (
         -- -----------------------------------------------------------------------
 
         -- Quantity of units ordered on this line
-        cast(quantity   as INT64)   as quantity,
+        CAST(quantity AS INT64) AS quantity,
 
         -- List price of the product at the time of the order
         -- Note: may differ from the current list_price in stg_localbike__products
-        cast(list_price as FLOAT64) as list_price,
+        CAST(list_price AS FLOAT64) AS list_price,
 
         -- Discount rate applied to this line (0.0 to 1.0)
         -- Example: 0.1 = 10% discount
-        cast(discount   as FLOAT64) as discount,
+        CAST(discount AS FLOAT64) AS discount,
 
         -- -----------------------------------------------------------------------
         -- Derived columns
         -- -----------------------------------------------------------------------
 
         -- Unit price after discount
-        round(
-            cast(list_price as FLOAT64) * (1 - cast(discount as FLOAT64)),
+        ROUND(
+            CAST(list_price AS FLOAT64) * (1 - CAST(discount AS FLOAT64)),
             2
-        ) as net_price,
+        ) AS net_price,
 
         -- Total revenue for this line (net_price × quantity)
-        round(
-            cast(list_price as FLOAT64) * (1 - cast(discount as FLOAT64))
-            * cast(quantity as INT64),
+        ROUND(
+            CAST(list_price AS FLOAT64) * (1 - CAST(discount AS FLOAT64))
+            * CAST(quantity AS INT64),
             2
-        ) as line_revenue
+        ) AS line_revenue
 
-    from source
+    FROM source
 
 )
 
-select * from renamed
+SELECT * FROM renamed

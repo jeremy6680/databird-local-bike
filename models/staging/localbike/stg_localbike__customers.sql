@@ -1,13 +1,13 @@
-with source as (
+WITH source AS (
 
     -- Pull raw data from the localbike source dataset
-    select * from {{ source('localbike', 'customers') }}
+    SELECT * FROM {{ source('localbike', 'customers') }}
 
 ),
 
-renamed as (
+renamed AS (
 
-    select
+    SELECT
         -- Primary key
         customer_id,
 
@@ -26,10 +26,10 @@ renamed as (
 
         -- Cast zip_code to STRING — it's an integer in the source but
         -- should be treated as a code, not a number (no arithmetic on it)
-        cast(zip_code as string) as zip_code
+        CAST(zip_code AS STRING) AS zip_code
 
-    from source
+    FROM source
 
 )
 
-select * from renamed
+SELECT * FROM renamed
