@@ -53,3 +53,16 @@ The price actually charged on an order is captured in
 
 **Downstream:** `int_order_items__enriched`
 {% enddocs %}
+
+{% docs stg_localbike__stores %}
+Staging model for the `stores` source table.
+
+One row per store. Local Bike operates three stores across the United States:
+Santa Cruz (CA), Baldwin (NY), and Rowlett (TX).
+
+**Cleaning applied:** none — all columns are already clean in the source.
+
+**Grain:** one row per `store_id`
+
+**Downstream:** `int_orders__enriched`
+{% enddocs %}
