@@ -66,3 +66,32 @@ Santa Cruz (CA), Baldwin (NY), and Rowlett (TX).
 
 **Downstream:** `int_orders__enriched`
 {% enddocs %}
+
+{% docs stg_localbike__staffs %}
+Staging model for the `staffs` source table.
+
+One row per staff member across all three Local Bike stores (10 total).
+
+**Cleaning applied:**
+
+- `active` cast to `BOOL`
+- `active_label` derived as 'Active' / 'Inactive'
+- `full_name` computed as `CONCAT(first_name, ' ', last_name)`
+- `manager_id` cast via `SAFE_CAST` (source is STRING — see ADR-014)
+
+**Grain:** one row per `staff_id`
+
+**Org chart (as of source data):**
+Fabiola Jackson (#1) — General Manager
+├── Mireya Copeland (#2) — Store 1 (Santa Cruz)
+│ ├── Genna Serrano (#3)
+│ └── Virgie Wiggins (#4)
+├── Jannette David (#5) — Store 2 (Baldwin)
+│ ├── Marcelene Boyer (#6)
+│ └── Venita Daniel (#7)
+│ ├── Layla Terrell (#9)
+│ └── Bernardine Houston (#10)
+└── Kali Vargas (#8) — Store 3 (Rowlett)
+
+**Downstream:** `int_orders__enriched`
+{% enddocs %}
