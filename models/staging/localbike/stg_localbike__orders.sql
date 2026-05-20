@@ -52,13 +52,20 @@ renamed AS (
         END AS order_status_label,
 
         -- -----------------------------------------------------------------------
-        -- Dates — cast to DATE (source may store as STRING or TIMESTAMP)
+        -- Dates
+        -- order_date and required_date are DATE in source — no cast needed.
+        -- shipped_date is STRING in source — NULLIF removes the literal 'NULL'
+        -- string before SAFE_CAST converts to DATE (consistent with ADR-014).
         -- -----------------------------------------------------------------------
-        CAST(order_date AS DATE) AS order_date,
-        CAST(required_date AS DATE) AS required_date,
 
-        -- shipped_date is nullable: an order may not yet have shipped
-        CAST(shipped_date AS DATE) AS shipped_date,
+        -- order_date: native DATE in source
+        order_date,
+
+        -- required_date: native DATE in source
+        required_date,
+
+        -- shipped_date: STRING in source, nullable
+        SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE) AS shipped_date,
 
         -- -----------------------------------------------------------------------
         -- Derived column: shipping delay in calendar days
@@ -68,8 +75,8 @@ renamed AS (
         -- Used by the orders mart for the on-time delivery KPI
         -- -----------------------------------------------------------------------
         DATE_DIFF(
-            CAST(shipped_date AS DATE),
-            CAST(required_date AS DATE),
+            SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE),
+            required_date,
             DAY
         ) AS days_to_ship
 
