@@ -95,3 +95,27 @@ Fabiola Jackson (#1) — General Manager
 
 **Downstream:** `int_orders__enriched`
 {% enddocs %}
+
+{% docs stg_localbike__brands %}
+Staging model for the `brands` source table.
+
+One row per brand. Reference table for the product catalogue.
+
+**Cleaning applied:** none.
+
+**Grain:** one row per `brand_id`
+
+**Downstream:** `int_order_items__enriched` (via `stg_localbike__products`)
+{% enddocs %}
+
+{% docs stg_localbike__categories %}
+Staging model for the `categories` source table.
+
+One row per product category. Reference table for the product catalogue.
+
+**Cleaning applied:** none.
+
+**Grain:** one row per `category_id`
+
+**Downstream:** `int_order_items__enriched` (via `stg_localbike__products`)
+{% enddocs %}

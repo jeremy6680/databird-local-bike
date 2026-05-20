@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_localbike__brands
+    description: "{{ doc('stg_localbike__brands') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'brands')
+
+    columns:
+      - name: brand_id
+        description: "Unique identifier for each brand (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: brand_name
+        description: "Name of the brand."
+        data_tests:
+          - not_null

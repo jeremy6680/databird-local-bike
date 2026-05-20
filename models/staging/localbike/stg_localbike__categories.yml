@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_localbike__categories
+    description: "{{ doc('stg_localbike__categories') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'categories')
+
+    columns:
+      - name: category_id
+        description: "Unique identifier for each product category (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: category_name
+        description: "Name of the product category."
+        data_tests:
+          - not_null
