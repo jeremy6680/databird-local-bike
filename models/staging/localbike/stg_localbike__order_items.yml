@@ -1,0 +1,57 @@
+version: 2
+
+models:
+  - name: stg_localbike__order_items
+    description: "{{ doc('stg_localbike__order_items') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'order_items')
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - order_id
+            - item_id
+
+    columns:
+      - name: order_id
+        description: "Foreign key to stg_localbike__orders."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__orders')
+              field: order_id
+
+      - name: item_id
+        description: "Line item number within the order. Combined with order_id forms the primary key."
+        data_tests:
+          - not_null
+
+      - name: product_id
+        description: "Foreign key to stg_localbike__products."
+        data_tests:
+          - not_null
+
+      - name: quantity
+        description: "Number of units ordered on this line."
+        data_tests:
+          - not_null
+
+      - name: list_price
+        description: "Unit list price at the time of the order. May differ from the current product list price."
+        data_tests:
+          - not_null
+
+      - name: discount
+        description: "Discount rate applied to this line (0.0 to 1.0). Example: 0.1 = 10% discount."
+        data_tests:
+          - not_null
+
+      - name: net_price
+        description: "Unit price after discount: list_price × (1 - discount). Rounded to 2 decimal places."
+        data_tests:
+          - not_null
+
+      - name: line_revenue
+        description: "Total revenue for this line: net_price × quantity. Rounded to 2 decimal places."
+        data_tests:
+          - not_null
