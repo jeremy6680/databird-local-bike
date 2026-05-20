@@ -1,15 +1,15 @@
-# Name your project! Project names should contain only lowercase characters
-# and underscores. A good package name should reflect your organization's
-# name or the intended use of these models
-name: "local_bike"
+name: local_bike
 version: "1.0.0"
+config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-profile: "local_bike"
+# --------------------------------------------------------
+# dbt profile to use — matches the profile name in profiles.yml
+# --------------------------------------------------------
+profile: local_bike
 
-# These configurations specify where dbt should look for different types of files.
-# The `model-paths` config, for example, states that models in this project can be
-# found in the "models/" directory. You probably won't need to change these!
+# --------------------------------------------------------
+# Path configuration — dbt defaults, kept explicit for clarity
+# --------------------------------------------------------
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -17,16 +17,37 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-clean-targets: # directories to be removed by `dbt clean`
+# --------------------------------------------------------
+# Compilation artifacts — always git-ignored
+# --------------------------------------------------------
+target-path: "target"
+clean-targets:
   - "target"
   - "dbt_packages"
 
-# Configuring models
-# Full documentation: https://docs.getdbt.com/docs/configuring-models
-
-# In this example config, we tell dbt to build all models in the example/
-# directory as views. These settings can be overridden in the individual model
-# files using the `{{ config(...) }}` macro.
+# --------------------------------------------------------
+# Default materialisation per layer
+# All overrides must be declared in the model's {{ config() }} block
+# and justified in DECISIONS.md
+# --------------------------------------------------------
 models:
   local_bike:
-    # Config indicated by + and applies to all files under models/example/
+    # Persist column and model descriptions to BigQuery
+    # Enables descriptions to appear in the BigQuery UI
+    +persist_docs:
+      relation: true
+      columns: true
+
+    # Staging — light cleaning only, always views
+    staging:
+      +materialized: view
+      +schema: staging
+
+    # Intermediate — joins and business logic, always views
+    intermediate:
+      +materialized: view
+
+    # Mart — aggregated, BI-ready tables connected to Metabase
+    # Exception: orders.sql overrides this with incremental (see DECISIONS.md ADR-008)
+    mart:
+      +materialized: table
