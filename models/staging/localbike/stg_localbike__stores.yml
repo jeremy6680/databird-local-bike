@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_localbike__stores
+    description: "{{ doc('stg_localbike__stores') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'stores')
+
+    columns:
+      - name: store_id
+        description: "Unique identifier for each store (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: store_name
+        description: "Name of the store (e.g. Santa Cruz Bikes, Baldwin Bikes, Rowlett Bikes)."
+        data_tests:
+          - not_null
+
+      - name: phone
+        description: "Store phone number."
+
+      - name: email
+        description: "Store email address."
+
+      - name: street
+        description: "Street address of the store."
+
+      - name: city
+        description: "City where the store is located."
+        data_tests:
+          - not_null
+
+      - name: state
+        description: "US state where the store is located."
+        data_tests:
+          - not_null
+
+      - name: zip_code
+        description: "ZIP code of the store."

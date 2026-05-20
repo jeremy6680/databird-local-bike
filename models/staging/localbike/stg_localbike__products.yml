@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_localbike__products
+    description: "{{ doc('stg_localbike__products') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'products')
+
+    columns:
+      - name: product_id
+        description: "Unique identifier for each product (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: brand_id
+        description: "Foreign key to stg_localbike__brands."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__brands')
+              field: brand_id
+
+      - name: category_id
+        description: "Foreign key to stg_localbike__categories."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__categories')
+              field: category_id
+
+      - name: product_name
+        description: "Full name of the product."
+        data_tests:
+          - not_null
+
+      - name: model_year
+        description: "Model year of the product (e.g. 2018)."
+        data_tests:
+          - not_null
+
+      - name: list_price
+        description: "Current catalogue list price in USD. May differ from the price recorded in stg_localbike__order_items at order time."
+        data_tests:
+          - not_null

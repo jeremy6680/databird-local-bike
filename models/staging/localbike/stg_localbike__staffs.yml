@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: stg_localbike__staffs
+    description: "{{ doc('stg_localbike__staffs') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'staffs')
+
+    columns:
+      - name: staff_id
+        description: "Unique identifier for each staff member (primary key)."
+        data_tests:
+          - unique
+          - not_null
+
+      - name: store_id
+        description: "Foreign key to stg_localbike__stores."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__stores')
+              field: store_id
+
+      - name: manager_id
+        description: "Foreign key to stg_localbike__staffs (self-join). Nullable — NULL for top-level managers."
+        data_tests:
+          - relationships:
+              to: ref('stg_localbike__staffs')
+              field: staff_id
+
+      - name: first_name
+        description: "First name of the staff member."
+        data_tests:
+          - not_null
+
+      - name: last_name
+        description: "Last name of the staff member."
+        data_tests:
+          - not_null
+
+      - name: full_name
+        description: "Full name of the staff member (first_name + last_name)."
+        data_tests:
+          - not_null
+
+      - name: phone
+        description: "Staff member phone number."
+
+      - name: email
+        description: "Staff member email address."
+
+      - name: active
+        description: "Whether the staff member is currently active (true) or inactive (false)."
+        data_tests:
+          - not_null
+
+      - name: active_label
+        description: "Human-readable active status label (Active / Inactive)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["Active", "Inactive"]

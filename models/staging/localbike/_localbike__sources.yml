@@ -1,0 +1,38 @@
+version: 2
+
+sources:
+  - name: localbike
+    description: >
+      Raw source data for Local Bike, provided by DataBird.
+      This dataset is read-only — dbt never writes to it.
+      All staging models consume this source via source() references.
+    database: databird-prep-work-ae
+    schema: local_bike
+
+    tables:
+      - name: customers
+        description: Customer profiles — contact details and address.
+
+      - name: orders
+        description: Orders placed by customers — status, dates, and foreign keys to customer, store, and staff.
+
+      - name: order_items
+        description: Line items within each order — product, quantity, list price, and discount.
+
+      - name: products
+        description: Product catalogue — name, brand, category, model year, and list price.
+
+      - name: stores
+        description: Store locations — name, contact details, and address.
+
+      - name: staffs
+        description: Employees — contact details, active status, and foreign keys to store and manager.
+
+      - name: brands
+        description: Brand reference table — brand id and name.
+
+      - name: categories
+        description: Category reference table — category id and name.
+
+      - name: stocks
+        description: Stock levels per product and store — composite key (store_id + product_id) and quantity.
