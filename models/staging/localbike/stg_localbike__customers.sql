@@ -1,3 +1,13 @@
+-- =============================================================================
+-- Model: stg_localbike__customers
+-- Layer: Staging
+-- Description: Light cleaning and standardisation of the customers source
+--              table. Casts zip_code to STRING (postal code, not a number).
+-- Source: localbike.customers
+-- Depends on: source('localbike', 'customers')
+-- Consumed by: int_orders__enriched
+-- =============================================================================
+
 WITH source AS (
 
     -- Pull raw data from the localbike source dataset

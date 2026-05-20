@@ -2,10 +2,7 @@ version: 2
 
 models:
   - name: stg_localbike__customers
-    description: >
-      Staged customer profiles from the Local Bike source dataset.
-      One row per customer. Light cleaning only — no joins, no aggregations.
-      zip_code is cast from INTEGER to STRING (it is a code, not a number).
+    description: "{{ doc('stg_localbike__customers') }}"
 
     data_tests:
       - not_null:

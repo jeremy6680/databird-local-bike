@@ -1,3 +1,17 @@
+{% docs stg_localbike__customers %}
+Staging model for the `customers` source table.
+
+One row per customer. Light cleaning only — no joins, no aggregations.
+
+**Cleaning applied:**
+
+- `zip_code` cast to `STRING` (postal code — not a number, no arithmetic)
+
+**Grain:** one row per `customer_id`
+
+**Downstream:** `int_orders__enriched`
+{% enddocs %}
+
 {% docs stg_localbike__orders %}
 Staging model for the `orders` source table.
 
@@ -118,4 +132,23 @@ One row per product category. Reference table for the product catalogue.
 **Grain:** one row per `category_id`
 
 **Downstream:** `int_order_items__enriched` (via `stg_localbike__products`)
+{% enddocs %}
+
+{% docs stg_localbike__stocks %}
+Staging model for the `stocks` source table.
+
+One row per store × product combination. Represents current stock levels
+across all three Local Bike stores.
+
+**Cleaning applied:**
+
+- `quantity` cast to `INT64`
+
+**Grain:** one row per `(store_id, product_id)`
+
+**Note:** this model is consumed directly by Metabase for stock analysis
+(out-of-stock and overstock KPIs) — no intermediate model is required
+since no joins are needed for this use case.
+
+**Downstream:** mart layer (direct Metabase connection)
 {% enddocs %}

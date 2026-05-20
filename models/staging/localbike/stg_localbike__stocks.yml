@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: stg_localbike__stocks
+    description: "{{ doc('stg_localbike__stocks') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: source('localbike', 'stocks')
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - store_id
+            - product_id
+
+    columns:
+      - name: store_id
+        description: "Foreign key to stg_localbike__stores."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__stores')
+              field: store_id
+
+      - name: product_id
+        description: "Foreign key to stg_localbike__products."
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_localbike__products')
+              field: product_id
+
+      - name: quantity
+        description: "Current quantity in stock for this product at this store."
+        data_tests:
+          - not_null
