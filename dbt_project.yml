@@ -26,24 +26,22 @@ clean-targets:
   - "dbt_packages"
 
 # --------------------------------------------------------
-# Persist column and model descriptions to BigQuery
-# Enables descriptions to appear in the BigQuery UI
-# --------------------------------------------------------
-persist_docs:
-  relation: true
-  columns: true
-
-# --------------------------------------------------------
 # Default materialisation per layer
 # All overrides must be declared in the model's {{ config() }} block
 # and justified in DECISIONS.md
 # --------------------------------------------------------
 models:
   local_bike:
+    # Persist column and model descriptions to BigQuery
+    # Enables descriptions to appear in the BigQuery UI
+    +persist_docs:
+      relation: true
+      columns: true
+
     # Staging — light cleaning only, always views
     staging:
       +materialized: view
-      +schema: staging # optional: isolates staging views in a sub-schema
+      +schema: staging
 
     # Intermediate — joins and business logic, always views
     intermediate:
