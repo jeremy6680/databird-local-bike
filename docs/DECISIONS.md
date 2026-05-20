@@ -12,7 +12,7 @@ Any deviation from the conventions defined in `CLAUDE.md` must appear in this fi
 
 ### [ADR-001] Warehouse: BigQuery
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -33,7 +33,7 @@ No DuckDB local fallback — the dataset is hosted remotely and BigQuery is the 
 
 ### [ADR-002] dbt Core — latest stable release
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -55,7 +55,7 @@ Exact version to be pinned in `requirements.txt` at project init time.
 
 ### [ADR-003] Three-layer medallion architecture
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -80,7 +80,7 @@ Layer defaults are declared in `dbt_project.yml`. Overrides in SQL `{{ config() 
 
 ### [ADR-004] Two BigQuery datasets — dev / prod separation
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -122,7 +122,7 @@ local_bike:
 
 ### [ADR-005] Source data location — dedicated `local_bike` dataset
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -140,7 +140,7 @@ and dbt-managed transformed data, and makes the lineage immediately legible.
 
 ### [ADR-006] CI/CD via GitHub Actions — Slim CI + Full CD
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -175,7 +175,7 @@ Two GitHub Actions workflows:
 
 ### [ADR-007] dbt run + dbt test + dbt docs generate — separate steps
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -195,7 +195,7 @@ Run `dbt run`, `dbt test`, and `dbt docs generate` as **separate steps** in both
 
 ### [ADR-008] Incremental model — `orders`
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -218,7 +218,7 @@ Materialise `orders` (mart layer) as `incremental` with:
 
 ### [ADR-009] Metabase — local dev, then VPS (Hetzner) for presentation
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -239,7 +239,7 @@ Need a BI tool to expose mart models as dashboards.
 
 ### [ADR-010] Git workflow — branch naming and commit conventions
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -257,7 +257,7 @@ Following the DataBird dbt Git guide and Web2Data conventions.
 
 ### [ADR-011] Documentation file strategy — committed `docs/` vs git-ignored `_docs/`
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -268,13 +268,13 @@ Two categories of documentation exist in this project:
 
 **Decision:**
 
-| File                | Location     | Committed                      |
-| ------------------- | ------------ | ------------------------------ |
-| `specifications.md` | `docs/`      | ✅ Yes — public deliverable    |
-| `DECISIONS.md`      | `_docs/`     | ❌ No — internal               |
-| `NEXT_STEPS.md`     | `_docs/`     | ❌ No — internal               |
-| `STRUCTURE.md`      | `_docs/`     | ❌ No — internal               |
-| `CLAUDE.md`         | project root | ❌ No — Claude AI context file |
+| File              | Location | Committed                 |
+| ----------------- | -------- | ------------------------- |
+| SPECIFICATIONS.md | `docs/`  | ✅ Yes                    |
+| DECISIONS.md      | `docs/`  | ✅ Yes                    |
+| NEXT_STEPS.md     | `docs/`  | ✅ Yes                    |
+| STRUCTURE.md      | `docs/`  | ✅ Yes                    |
+| CLAUDE.md         | root     | ❌ No — Claude AI context |
 
 `_docs/` and `CLAUDE.md` are added to `.gitignore`.
 `docs/` is committed and visible in the public repository.
@@ -285,11 +285,18 @@ Two categories of documentation exist in this project:
 - `STRUCTURE.md` will be generated after `dbt init` once the actual folder tree exists
 - The public repo presents `docs/specifications.md` as the single source of truth for project scope
 
+**Update — 2026-05-20:** DECISIONS.md, NEXT_STEPS.md and STRUCTURE.md were moved
+from `_docs/` to `docs/` and are now committed to the repository.
+Rationale: these files provide useful context for peer reviewers and DataBird
+evaluators. The distinction between "internal" and "public" documentation was
+not meaningful enough to justify keeping them git-ignored.
+The `_docs/` folder and its `.gitignore` entry have been removed.
+
 ---
 
 ### [ADR-012] order_status labels — unconfirmed mapping
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Pending confirmation
 
 **Context:**
@@ -302,7 +309,7 @@ distinguished by data inference alone. Value 4 = Completed (confirmed).
 
 ### [ADR-013] accepted_values on integer columns — quote: false required
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -328,7 +335,7 @@ Always add `quote: false` to `accepted_values` tests on integer columns.
 
 ### [ADR-014] SAFE_CAST for STRING-to-INT64 FK columns
 
-**Date:** 2026-05
+**Date:** 2026-05-20
 **Status:** Decided
 
 **Context:**
@@ -345,3 +352,10 @@ throwing an error.
 
 **Affected models:** `stg_localbike__staffs.manager_id` — to watch for on
 any other STRING FK columns.
+
+**Extension — 2026-05-20 — mixed DATE/STRING columns in the same source table:**
+`order_date` and `required_date` are native DATE columns in the source — no cast needed.
+`shipped_date` alone is stored as STRING and requires `SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE)`.
+Never apply `NULLIF(col, 'NULL')` on a native DATE column — BigQuery attempts to cast the
+comparison string `'NULL'` to DATE at query time and throws `Could not cast literal "NULL" to type DATE`.
+Rule: always verify the actual BigQuery column type before applying defensive STRING casting patterns.
