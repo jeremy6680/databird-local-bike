@@ -466,3 +466,39 @@ introduced during joins:
   singular test validating their domain constraints
 - Any new intermediate model that performs joins must have a corresponding
   row explosion singular test in `tests/`
+
+---
+
+### [ADR-017] Derived columns — layer assignment for order_status_label and delivery_delay_days
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+During the mart layer build, two derived columns were found to be incorrectly
+placed in the staging layer:
+
+- `order_status_label` — a CASE-based decode of the raw `order_status` integer
+- `days_to_ship` — a DATE_DIFF between `shipped_date` and `required_date`
+
+Both had been added to `stg_localbike__orders` during the staging build.
+However, status decoding and delay computation are business logic, not light
+cleaning — they belong at the intermediate layer.
+
+**Decision:**
+
+- Remove `order_status_label` and `days_to_ship` from `stg_localbike__orders`
+- Compute `order_status_label` (CASE) and `delivery_delay_days` (DATE_DIFF)
+  once in `int_orders__enriched`
+- Rename `days_to_ship` → `delivery_delay_days` for clarity
+
+**Rule derived:**
+Staging models must only contain: casts, renames, and NULLIF/SAFE_CAST
+defensive patterns. Any CASE decode or derived metric belongs at intermediate
+or mart layer.
+
+**Consequences:**
+
+- `stg_localbike__orders` is now strictly a cleaning model
+- `int_orders__enriched` is the single source of truth for both columns
+- All mart models consume `delivery_delay_days` directly from the intermediate
