@@ -158,3 +158,9 @@ Updated after each work session. Completed items are moved to the bottom.
   - `not_null` on join keys
   - Verify no row explosion on joins (check grain in a singular test if needed)
   - Verify: `dbt test --select intermediate`
+
+- [x] **Refactor staging/intermediate — layer assignment cleanup**
+  - Removed `order_status_label` and `days_to_ship` from `stg_localbike__orders`
+  - `order_status_label` and `delivery_delay_days` now computed once in `int_orders__enriched`
+  - Fixed misaligned comments in `int_orders__enriched` (residual from refactor)
+  - Added ADR-017
