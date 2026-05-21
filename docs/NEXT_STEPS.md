@@ -166,3 +166,9 @@ Updated after each work session. Completed items are moved to the bottom.
 - [x] **Refactor mart layer — introduce `int_orders__with_revenue`**
   - Centralised revenue join logic previously duplicated across all mart models
   - DAG is now strictly linear (ADR-021)
+
+### — Docs and hosting
+
+- [x] Write `models/overview.md` — dbt docs homepage
+- [x] Deploy dbt docs to Netlify via GitHub Actions CLI (ADR-022)
+  - Live: https://local-bike-docs.jeremymarchandeau.com/

@@ -631,3 +631,39 @@ Revenue rule (consistent with ADR-019):
 - The `orders` mart gains three new columns: `order_revenue`, `order_units_sold`,
   `order_line_count` — full-refresh required on first deploy
 - The DAG is now strictly linear with no cross-layer joins between intermediate models
+
+---
+
+### [ADR-022] dbt docs hosting — Netlify via GitHub Actions CLI
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+The project generates a static dbt docs site via `dbt docs generate` (produces `target/index.html`,
+`manifest.json`, `catalog.json`). A hosting solution was needed to make the docs publicly accessible
+for peer reviewers and DataBird evaluators.
+
+**Options considered:**
+
+- `dbt docs serve` — local Flask server only, not suitable for public hosting
+- Netlify with its own build pipeline — would require running dbt on Netlify with credentials,
+  duplicating the CI/CD logic already in GitHub Actions
+- Netlify as a static host, fed by GitHub Actions CLI — clean separation of concerns
+
+**Decision:**
+Deploy dbt docs to Netlify using the **Netlify CLI** from within the existing `cd.yml` workflow.
+GitHub Actions runs `dbt docs generate`, then pushes the `target/` directory to Netlify via
+`netlify deploy --dir=target --prod`. Netlify is configured with an empty build command
+(`netlify.toml`) so it never attempts its own build.
+
+**Live URL:** https://local-bike-docs.jeremymarchandeau.com/
+
+**Consequences:**
+
+- Two additional GitHub Secrets required: `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`
+- `netlify.toml` committed to repo root to disable Netlify's auto-build
+- Netlify "Stop auto publishing" enabled — deploys only happen via the CD workflow
+- dbt docs are always in sync with production: every merge to `main` triggers a redeploy
+- `models/overview.md` added to customise the dbt docs homepage (project description,
+  architecture, stack, links to Metabase dashboard and GitHub repo)

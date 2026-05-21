@@ -89,6 +89,7 @@ local_bike/
 ├── tests/                            # Singular (one-off) data tests
 │
 ├── .gitignore                        # ✅ committed
+├── netlify.toml                      # ✅ committed — disables Netlify auto-build (docs deployed via CD)
 ├── dbt_project.yml                   # ✅ committed — project config, materialisation defaults
 ├── packages.yml                      # ✅ committed — dbt package dependencies (dbt-utils, codegen)
 ├── profiles.yml                      # ❌ git-ignored — connection profiles (credentials via env vars)
@@ -100,16 +101,17 @@ local_bike/
 
 ## Key conventions
 
-| Path pattern                 | Rule                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------ |
-| `models/staging/localbike/`  | One subfolder per source system — enables `dbt build --select staging.localbike+`    |
-| `models/intermediate/sales/` | One subfolder per business domain                                                    |
-| `models/mart/sales/`         | One subfolder per business domain — Metabase connects here                           |
-| `stg_<source>__<entity>.sql` | Always paired with a same-name `.yml` file                                           |
-| `int_<entity>__<verb>.sql`   | Always paired with a same-name `.yml` file                                           |
-| `<entity>.sql` (mart)        | No prefix — plain entity name (e.g. `orders.sql`, `top_products.sql`)                |
-| `_*__docs.md`                | One docs block file per layer/domain — never copy-paste descriptions across YAMLs    |
-| `profiles.yml`               | Never committed — credentials injected via env vars locally, GitHub Secrets in CI/CD |
+| Path pattern                 | Rule                                                                                   |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| `models/staging/localbike/`  | One subfolder per source system — enables `dbt build --select staging.localbike+`      |
+| `models/intermediate/sales/` | One subfolder per business domain                                                      |
+| `models/mart/sales/`         | One subfolder per business domain — Metabase connects here                             |
+| `models/overview.md`         | dbt docs homepage content — rendered at https://local-bike-docs.jeremymarchandeau.com/ |
+| `stg_<source>__<entity>.sql` | Always paired with a same-name `.yml` file                                             |
+| `int_<entity>__<verb>.sql`   | Always paired with a same-name `.yml` file                                             |
+| `<entity>.sql` (mart)        | No prefix — plain entity name (e.g. `orders.sql`, `top_products.sql`)                  |
+| `_*__docs.md`                | One docs block file per layer/domain — never copy-paste descriptions across YAMLs      |
+| `profiles.yml`               | Never committed — credentials injected via env vars locally, GitHub Secrets in CI/CD   |
 
 ---
 
