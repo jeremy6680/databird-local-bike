@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: revenue_by_category
+    description: "{{ doc('revenue_by_category') }}"
+
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - category_id
+            - order_year_month
+
+    columns:
+      - name: category_id
+        description: Foreign key to the product category. Part of the composite grain key.
+        data_tests:
+          - not_null
+
+      - name: category_name
+        description: Name of the product category (e.g. Mountain Bikes, Road Bikes).
+        data_tests:
+          - not_null
+
+      - name: order_year_month
+        description: >
+          Calendar month in YYYY-MM format, derived from order_date.
+          Part of the composite grain key (category_id × order_year_month).
+        data_tests:
+          - not_null
+
+      - name: total_revenue
+        description: >
+          Total revenue for this category and month, computed as
+          SUM(list_price × quantity × (1 - discount)) across all completed
+          orders (status = 4). Rounded to 2 decimal places.
+        data_tests:
+          - not_null
+
+      - name: units_sold
+        description: >
+          Total number of units sold for this category and month
+          across all completed orders.
+        data_tests:
+          - not_null
+
+      - name: order_count
+        description: >
+          Number of distinct completed orders containing at least one product
+          from this category.
+        data_tests:
+          - not_null

@@ -89,3 +89,77 @@ Uniqueness is enforced by the `dbt_utils.unique_combination_of_columns` test.
 - Metabase — Total revenue KPI (filterable by store and period)
 
 {% enddocs %}
+
+{% docs revenue_by_category %}
+
+## revenue_by_category
+
+**Layer:** Mart | **Materialisation:** table | **Grain:** one row per category × calendar month
+
+### Purpose
+
+Aggregates completed order revenue and units sold by product category and
+calendar month. Powers the revenue breakdown by category (pie/donut chart)
+and category trend KPIs in Metabase.
+
+### Business logic
+
+- Only **completed orders** (order_status = 4) contribute to revenue figures.
+- Revenue per order line: `list_price × quantity × (1 - discount)`
+- A single order can span multiple categories — `order_count` uses
+  `COUNT(DISTINCT order_id)` to avoid double-counting.
+
+### Grain
+
+One row per `category_id` × `order_year_month`.
+Uniqueness enforced by `dbt_utils.unique_combination_of_columns`.
+
+### Upstream dependencies
+
+| Model                       | Role                                        |
+| --------------------------- | ------------------------------------------- |
+| `int_order_items__enriched` | Line-level pricing, quantity, category dims |
+| `int_orders__enriched`      | Order status filter and order_date          |
+
+### Downstream consumers
+
+- Metabase — Revenue breakdown by category (pie/donut chart)
+- Metabase — Category trend (monthly line chart)
+
+{% enddocs %}
+
+{% docs top_products %}
+
+## top_products
+
+**Layer:** Mart | **Materialisation:** table | **Grain:** one row per product (all-time)
+
+### Purpose
+
+Ranks all products by total revenue across all completed orders.
+Powers the Top 10 products bar chart in Metabase.
+
+### Business logic
+
+- Only **completed orders** (order_status = 4) contribute to revenue figures.
+- Revenue per order line: `list_price × quantity × (1 - discount)`
+- Ranking uses `DENSE_RANK()` — no gaps if two products share the same revenue.
+- No time dimension — this is an all-time ranking. For monthly trends, use
+  `revenue_by_category`.
+
+### Grain
+
+One row per `product_id`. Uniqueness enforced by `unique` + `not_null` tests.
+
+### Upstream dependencies
+
+| Model                       | Role                                       |
+| --------------------------- | ------------------------------------------ |
+| `int_order_items__enriched` | Line-level pricing, quantity, product dims |
+| `int_orders__enriched`      | Order status filter                        |
+
+### Downstream consumers
+
+- Metabase — Top 10 products by revenue (bar chart)
+
+{% enddocs %}
