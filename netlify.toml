@@ -1,0 +1,10 @@
+# netlify.toml
+# Netlify configuration for dbt docs hosting.
+# Build is handled entirely by GitHub Actions (cd.yml).
+# Netlify only serves the static files pushed by the CLI — no build step needed.
+
+[build]
+  # No build command — GitHub Actions runs dbt docs generate and deploys via CLI
+  command = ""
+  # target/ is produced by dbt docs generate and pushed by the CD workflow
+  publish = "target"
