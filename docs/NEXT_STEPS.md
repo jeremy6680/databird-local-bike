@@ -162,3 +162,7 @@ Updated after each work session. Completed items are moved to the bottom.
   - `unique` + `not_null` on all PKs
   - Four-section docs block for each mart model (mandatory per CLAUDE.md)
   - Verify: `dbt test --select mart`
+
+- [x] **Refactor mart layer — introduce `int_orders__with_revenue`**
+  - Centralised revenue join logic previously duplicated across all mart models
+  - DAG is now strictly linear (ADR-021)

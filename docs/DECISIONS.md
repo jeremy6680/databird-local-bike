@@ -595,3 +595,39 @@ in each model that needs it. It is not promoted to the intermediate layer.
 
 - Each mart model that buckets by month computes FORMAT_DATE independently
 - order_date remains the join and filter key at intermediate level
+
+---
+
+### [ADR-021] Intermediate layer — int_orders\_\_with_revenue
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+All four mart models (`revenue_by_store`, `revenue_by_category`, `top_products`,
+`customer_summary`) were independently joining `int_orders__enriched` ×
+`int_order_items__enriched` to filter completed orders (status = 4) and compute
+revenue. This duplicated the same join logic and the same filter across every mart,
+and produced a DAG with cross-layer joins that obscured the actual data flow.
+
+**Decision:**
+Introduce `int_orders__with_revenue` — a new intermediate model that joins
+`int_orders__enriched` with `int_order_items__enriched` and exposes pre-computed
+`order_revenue` at the order grain.
+
+Revenue rule (consistent with ADR-019):
+
+- `order_revenue` is non-NULL only for completed orders (status = 4)
+- All orders are preserved with `order_revenue = NULL` for non-completed statuses
+- Mart models filter on `order_status = 4` or use `COALESCE(order_revenue, 0)`
+  as needed — no duplicated filter logic
+
+**Consequences:**
+
+- All mart models that need revenue now depend exclusively on `int_orders__with_revenue`
+- `revenue_by_category` and `top_products` retain `int_order_items__enriched` as
+  a second parent for line-level product/category dimensions — but no longer
+  reference `int_orders__enriched` directly
+- The `orders` mart gains three new columns: `order_revenue`, `order_units_sold`,
+  `order_line_count` — full-refresh required on first deploy
+- The DAG is now strictly linear with no cross-layer joins between intermediate models

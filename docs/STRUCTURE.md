@@ -61,7 +61,9 @@ local_bike/
 │   │       ├── int_orders__enriched.sql
 │   │       ├── int_orders__enriched.yml
 │   │       ├── int_order_items__enriched.sql
-│   │       └── int_order_items__enriched.yml
+│   │       ├── int_order_items__enriched.yml
+│   │       ├── int_orders__with_revenue.sql  # Order grain + pre-computed revenue
+│   │       └── int_orders__with_revenue.yml
 │   │
 │   └── mart/                         # Layer 3 — aggregated, BI-ready tables
 │       └── sales/                    # Subfolder per business domain
