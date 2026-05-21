@@ -80,3 +80,53 @@ from order_items to brands or categories.
 - `mart/sales/customer_summary`
 
 {% enddocs %}
+
+{% docs int_orders__with_revenue %}
+
+## int_orders\_\_with_revenue
+
+**Layer:** Intermediate  
+**Grain:** One row per order (`order_id`)  
+**Materialisation:** view
+
+### Purpose
+
+Joins `int_orders__enriched` with `int_order_items__enriched` to produce a
+single intermediate model that carries both order dimensions and pre-computed
+order-level revenue metrics.
+
+This model was introduced to eliminate duplicated join logic that previously
+existed in every mart model. All mart models that need revenue now depend
+exclusively on this model — none of them join the two intermediate models
+directly.
+
+### Revenue rule
+
+Only completed orders (`order_status = 4`) produce a non-NULL `order_revenue`.
+All other orders are preserved with `order_revenue = NULL` so that mart models
+can compute both activity metrics (all statuses) and financial metrics
+(completed only) from a single source.
+
+### Key columns
+
+| Column             | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `order_id`         | Primary key                                                 |
+| `order_revenue`    | Total order revenue after discounts — NULL if not completed |
+| `order_units_sold` | Total units across all lines — NULL if not completed        |
+| `order_line_count` | Number of product lines — populated for all statuses        |
+
+### Upstream dependencies
+
+- `int_orders__enriched`
+- `int_order_items__enriched`
+
+### Downstream consumers
+
+- `mart/sales/orders.sql`
+- `mart/sales/revenue_by_store.sql`
+- `mart/sales/revenue_by_category.sql`
+- `mart/sales/top_products.sql`
+- `mart/sales/customer_summary.sql`
+
+{% enddocs %}
