@@ -502,3 +502,35 @@ or mart layer.
 - `stg_localbike__orders` is now strictly a cleaning model
 - `int_orders__enriched` is the single source of truth for both columns
 - All mart models consume `delivery_delay_days` directly from the intermediate
+
+---
+
+### [ADR-018] Singular tests strategy — mart layer
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+ADR-016 defined the singular test strategy for staging and intermediate layers.
+Two mart models required additional singular tests not expressible as generic tests.
+
+**Decision:**
+Add singular tests for mart-level business rule validation:
+
+| Test file                                                 | Model              | Validates                                      |
+| --------------------------------------------------------- | ------------------ | ---------------------------------------------- |
+| `assert_revenue_by_store_positive_revenue.sql`            | `revenue_by_store` | `total_revenue > 0` for all store × month rows |
+| `assert_customer_summary_lifetime_value_non_negative.sql` | `customer_summary` | `lifetime_value >= 0` for all customers        |
+
+**Rationale:**
+
+- `revenue_by_store`: a completed order must always produce positive revenue.
+  A zero or negative `total_revenue` would indicate a pricing or discount data
+  issue that would silently corrupt store performance reporting in Metabase.
+- `customer_summary`: `lifetime_value` is `COALESCE`'d to 0 for customers with
+  no completed orders — any negative value would indicate corrupted pricing or
+  discount data upstream.
+
+**Convention extension (from ADR-016):**
+Any mart model exposing financial metrics should have a singular test asserting
+that those metrics are non-negative.
