@@ -40,3 +40,43 @@ no orders are silently dropped if a FK is orphaned.
 - `mart/sales/customer_summary`
 
 {% enddocs %}
+
+{% docs int_order_items__enriched %}
+
+## int_order_items\_\_enriched
+
+**Layer:** Intermediate  
+**Domain:** Sales  
+**Grain:** One row per order line (`order_id` + `item_id` is unique)
+
+### Purpose
+
+Enriches order items with denormalised product, brand, and category attributes.
+Computes `line_revenue` — the canonical effective revenue metric used by all
+downstream product and category mart models.
+
+### Joins
+
+| Joined model                | Join type | Join key      |
+| --------------------------- | --------- | ------------- |
+| stg_localbike\_\_products   | LEFT JOIN | `product_id`  |
+| stg_localbike\_\_brands     | LEFT JOIN | `brand_id`    |
+| stg_localbike\_\_categories | LEFT JOIN | `category_id` |
+
+Note: brands and categories are reached via products — there is no direct FK
+from order_items to brands or categories.
+
+### Business logic
+
+- **`line_revenue`** — effective revenue per order line after discount:
+  `quantity * list_price * (1 - discount)`, rounded to 2 decimal places.
+  This is the single canonical revenue metric for all product/category marts.
+  Never recompute this formula downstream — always reference `line_revenue`.
+
+### Downstream consumers
+
+- `mart/sales/revenue_by_category`
+- `mart/sales/top_products`
+- `mart/sales/customer_summary`
+
+{% enddocs %}
