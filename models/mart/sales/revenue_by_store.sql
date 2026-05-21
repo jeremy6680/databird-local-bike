@@ -73,13 +73,13 @@ final AS (
         -- ------------------------------------------------------------------
 
         -- Total revenue for this store and month (completed orders only)
-        ROUND(SUM(order_revenue), 2)                                    AS total_revenue,
+        ROUND(SUM(order_revenue), 2) AS total_revenue,
 
         -- Number of completed orders for this store and month
-        COUNT(*)                                                        AS order_count,
+        COUNT(*) AS order_count,
 
         -- Average revenue per order for this store and month
-        ROUND(SUM(order_revenue) / NULLIF(COUNT(*), 0), 2)             AS avg_order_revenue
+        ROUND(SUM(order_revenue) / NULLIF(COUNT(*), 0), 2) AS avg_order_revenue
 
     FROM completed_orders
 

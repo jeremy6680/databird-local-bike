@@ -57,16 +57,16 @@ revenue_per_customer AS (
         customer_id,
 
         -- Number of completed orders
-        COUNT(DISTINCT order_id)                                        AS completed_order_count,
+        COUNT(DISTINCT order_id) AS completed_order_count,
 
         -- Lifetime value: total revenue across all completed orders
-        ROUND(SUM(order_revenue), 2)                                    AS lifetime_value,
+        ROUND(SUM(order_revenue), 2) AS lifetime_value,
 
         -- Average basket: LTV / number of completed orders
         ROUND(
             SUM(order_revenue) / NULLIF(COUNT(DISTINCT order_id), 0),
             2
-        )                                                               AS avg_basket
+        ) AS avg_basket
 
     FROM int_orders
 

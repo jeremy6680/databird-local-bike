@@ -128,13 +128,11 @@ final AS (
         -- Total revenue for this order (completed orders only, else NULL)
         CASE
             WHEN o.order_status = 4 THEN r.order_revenue
-            ELSE NULL
         END AS order_revenue,
 
         -- Total units sold for this order (completed orders only, else NULL)
         CASE
             WHEN o.order_status = 4 THEN r.order_units_sold
-            ELSE NULL
         END AS order_units_sold,
 
         -- Number of product lines for this order (all statuses — useful for ops)
