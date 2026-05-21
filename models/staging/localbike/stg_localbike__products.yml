@@ -20,6 +20,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: brand_id_fkey
               to: ref('stg_localbike__brands')
               field: brand_id
 
@@ -28,6 +29,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: category_id_fkey
               to: ref('stg_localbike__categories')
               field: category_id
 

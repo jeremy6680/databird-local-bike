@@ -20,6 +20,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: customer_id_fkey
               to: ref('stg_localbike__customers')
               field: customer_id
 
