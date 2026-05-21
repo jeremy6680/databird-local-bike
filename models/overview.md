@@ -81,7 +81,7 @@ Every model is covered by:
 ## Live dashboard
 
 The Metabase dashboard is publicly available at:
-👉 [local-bike-data.jeremymarchandeau.com](https://local-bike-data.jeremymarchandeau.com/)
+👉 [local-bike-data.jeremymarchandeau.com](https://local-bike-data.jeremymarchandeau.com/public/dashboard/9dc87740-46b7-47d1-88a7-13578c238598)
 
 It connects exclusively to the `dbt_local_bike_prod_mart` dataset in BigQuery.
 

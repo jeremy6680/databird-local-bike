@@ -3,7 +3,7 @@
 [![CI — Slim Build](https://github.com/jeremy6680/databird-local-bike/actions/workflows/ci.yml/badge.svg)](https://github.com/jeremy6680/databird-local-bike/actions/workflows/ci.yml)
 [![CD — Production Deploy](https://github.com/jeremy6680/databird-local-bike/actions/workflows/cd.yml/badge.svg)](https://github.com/jeremy6680/databird-local-bike/actions/workflows/cd.yml)
 [![dbt docs](https://img.shields.io/badge/dbt%20docs-live-brightgreen)](https://local-bike-docs.jeremymarchandeau.com/)
-[![Metabase](https://img.shields.io/badge/Metabase-dashboard-blue)](https://local-bike-data.jeremymarchandeau.com/)
+[![Metabase](https://img.shields.io/badge/Metabase-dashboard-blue)](https://local-bike-data.jeremymarchandeau.com/public/dashboard/9dc87740-46b7-47d1-88a7-13578c238598)
 
 > **DataBird Analytics Engineering Bootcamp — Capstone Project · Apr–Jun 2026**  
 > **Author:** [Jeremy Marchandeau](https://jeremymarchandeau.com)
@@ -24,11 +24,11 @@ enabling the operations team to optimise sales and maximise revenue.
 
 ## Live links
 
-|                           |                                                   |
-| ------------------------- | ------------------------------------------------- |
-| 📊 **Metabase dashboard** | https://local-bike-data.jeremymarchandeau.com/    |
-| 📖 **dbt docs**           | https://local-bike-docs.jeremymarchandeau.com/    |
-| 🐙 **GitHub repository**  | https://github.com/jeremy6680/databird-local-bike |
+|                           |                                                                                                     |
+| ------------------------- | --------------------------------------------------------------------------------------------------- |
+| 📊 **Metabase dashboard** | https://local-bike-data.jeremymarchandeau.com/public/dashboard/9dc87740-46b7-47d1-88a7-13578c238598 |
+| 📖 **dbt docs**           | https://local-bike-docs.jeremymarchandeau.com/                                                      |
+| 🐙 **GitHub repository**  | https://github.com/jeremy6680/databird-local-bike                                                   |
 
 ---
 
