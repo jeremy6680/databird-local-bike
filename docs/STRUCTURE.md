@@ -113,11 +113,14 @@ local_bike/
 
 ## BigQuery datasets
 
-| Dataset               | Role                                      | Managed by                         |
-| --------------------- | ----------------------------------------- | ---------------------------------- |
-| `local_bike`          | Source data (read-only)                   | DataBird — never written to by dbt |
-| `dbt_local_bike_dev`  | Development output                        | dbt (`dev` target)                 |
-| `dbt_local_bike_prod` | Production output — connected to Metabase | dbt (`prod` target, CD workflow)   |
+| Dataset                            | Role                                     | Managed by                       |
+| ---------------------------------- | ---------------------------------------- | -------------------------------- |
+| `dbt_local_bike_dev_staging`       | Dev staging views                        | dbt (`dev` target)               |
+| `dbt_local_bike_dev_intermediate`  | Dev intermediate views                   | dbt (`dev` target)               |
+| `dbt_local_bike_dev_mart`          | Dev mart tables                          | dbt (`dev` target)               |
+| `dbt_local_bike_prod_staging`      | Prod staging views                       | dbt (`prod` target, CD workflow) |
+| `dbt_local_bike_prod_intermediate` | Prod intermediate views                  | dbt (`prod` target, CD workflow) |
+| `dbt_local_bike_prod_mart`         | Prod mart tables — connected to Metabase | dbt (`prod` target, CD workflow) |
 
 ---
 
@@ -127,3 +130,4 @@ local_bike/
 - `snapshots/` exists as a dbt convention but is not used in this project.
 - `seeds/` exists but is empty — no static reference data required for this dataset.
 - `analyses/` is available for ad-hoc SQL exploration but no analyses are planned at this stage.
+- Metabase connects exclusively to `dbt_local_bike_prod_mart` — never to staging or intermediate datasets.

@@ -389,3 +389,80 @@ any other STRING FK columns.
 Never apply `NULLIF(col, 'NULL')` on a native DATE column — BigQuery attempts to cast the
 comparison string `'NULL'` to DATE at query time and throws `Could not cast literal "NULL" to type DATE`.
 Rule: always verify the actual BigQuery column type before applying defensive STRING casting patterns.
+
+---
+
+### [ADR-015] Schema separation for intermediate and mart layers
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+By default, dbt writes all models to the same dataset (e.g. `dbt_local_bike_dev`).
+Adding `+schema` per layer in `dbt_project.yml` creates separate BigQuery datasets
+per layer.
+
+**Decision:**
+Add `+schema` for intermediate and mart layers in `dbt_project.yml`:
+
+- `intermediate` → `dbt_local_bike_dev_intermediate` / `dbt_local_bike_prod_intermediate`
+- `mart` → `dbt_local_bike_dev_mart` / `dbt_local_bike_prod_mart`
+
+Staging already had `+schema: staging` from project init.
+
+**Consequences:**
+
+- Metabase connects exclusively to the `_mart` dataset — no risk of exposing
+  intermediate views
+- BigQuery console shows a clear visual separation between layers
+- dbt creates missing datasets automatically at run time if the service account
+  has `bigquery.datasets.create` rights
+
+---
+
+### [ADR-016] Singular tests strategy
+
+**Date:** 2026-05-21
+**Status:** Decided
+
+**Context:**
+Generic dbt tests (`unique`, `not_null`, `accepted_values`, `relationships`)
+validate column-level constraints but cannot detect certain classes of data
+quality issues that require cross-model or multi-condition logic.
+
+**Decision:**
+Add singular tests for two distinct purposes:
+
+#### 1. Staging — domain-specific data quality
+
+Tests that encode business rules not expressible as generic tests:
+
+| Test file                                 | Validates                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `assert_order_items_positive_values.sql`  | `quantity > 0`, `list_price > 0`, `discount` between 0 and 1 on all order lines |
+| `assert_stocks_non_negative_quantity.sql` | `quantity >= 0` on all stock records                                            |
+| `assert_orders_date_consistency.sql`      | `order_date <= required_date`, and `shipped_date >= order_date` when not null   |
+
+#### 2. Intermediate — join grain validation
+
+Tests that detect row explosion caused by unexpected one-to-many relationships
+introduced during joins:
+
+| Test file                                     | Validates                                                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------ |
+| `assert_int_orders_no_row_explosion.sql`      | `int_orders__enriched` row count = `stg_localbike__orders` row count           |
+| `assert_int_order_items_no_row_explosion.sql` | `int_order_items__enriched` row count = `stg_localbike__order_items` row count |
+
+**Rationale:**
+
+- Staging singular tests catch invalid source data that would silently corrupt
+  revenue calculations downstream (negative quantities, out-of-range discounts)
+- Intermediate singular tests catch join fanout, which would multiply rows and
+  corrupt all downstream aggregations (revenue totals, order counts, LTV)
+
+**Convention:**
+
+- Any new staging model with numeric business-critical columns should have a
+  singular test validating their domain constraints
+- Any new intermediate model that performs joins must have a corresponding
+  row explosion singular test in `tests/`

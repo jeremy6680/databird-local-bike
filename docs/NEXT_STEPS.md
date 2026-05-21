@@ -5,24 +5,7 @@ Updated after each work session. Completed items are moved to the bottom.
 
 ---
 
-## 🔴 Now — Intermediate layer
-
-- [ ] **Write `int_orders__enriched`**
-  - Joins: `stg_localbike__orders` + `stg_localbike__customers` + `stg_localbike__stores` + `stg_localbike__staffs`
-  - `.sql` + `.yml` + docs block in `_int_sales__docs.md`
-
-- [ ] **Write `int_order_items__enriched`**
-  - Joins: `stg_localbike__order_items` + `stg_localbike__products` + `stg_localbike__brands` + `stg_localbike__categories`
-  - `.sql` + `.yml` + docs block
-
-- [ ] **Add intermediate tests**
-  - `not_null` on join keys
-  - Verify no row explosion on joins (check grain in a singular test if needed)
-  - Verify: `dbt test --select intermediate`
-
----
-
-## 🟡 Next — Mart layer
+## 🔴 Now — Mart layer
 
 - [ ] **Write `orders` (incremental)**
   - Source: `int_orders__enriched`
@@ -161,4 +144,17 @@ Updated after each work session. Completed items are moved to the bottom.
   - `accepted_values` on `order_status` (values: `1`, `2`, `3`, `4`)
   - Verify: `dbt test --select staging`
 
----
+### - Intermediate layer
+
+- [x] **Write `int_orders__enriched`**
+  - Joins: `stg_localbike__orders` + `stg_localbike__customers` + `stg_localbike__stores` + `stg_localbike__staffs`
+  - `.sql` + `.yml` + docs block in `_int_sales__docs.md`
+
+- [x] **Write `int_order_items__enriched`**
+  - Joins: `stg_localbike__order_items` + `stg_localbike__products` + `stg_localbike__brands` + `stg_localbike__categories`
+  - `.sql` + `.yml` + docs block
+
+- [x] **Add intermediate tests**
+  - `not_null` on join keys
+  - Verify no row explosion on joins (check grain in a singular test if needed)
+  - Verify: `dbt test --select intermediate`
