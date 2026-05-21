@@ -7,7 +7,7 @@
 --              chart in Metabase.
 --
 -- Grain: product_id
--- Depends on: int_order_items__enriched, int_orders__enriched
+-- Depends on: int_order_items__enriched, int_orders__with_revenue
 -- Consumed by: Metabase dashboard (top products KPI)
 -- =============================================================================
 
@@ -20,8 +20,8 @@
 WITH
 
 -- ---------------------------------------------------------------------------
--- Source: enriched order items (one row per order line, with product,
--- brand, and category dimensions already joined)
+-- Source: enriched order items — line-level data with product/brand/category
+-- dims and pre-computed line_revenue
 -- ---------------------------------------------------------------------------
 int_order_items AS (
 
@@ -30,7 +30,8 @@ int_order_items AS (
 ),
 
 -- ---------------------------------------------------------------------------
--- Source: enriched orders — used to filter completed orders only
+-- Source: enriched orders with revenue — used to filter completed orders only
+-- order_revenue is NULL for non-completed orders (ADR-019)
 -- ---------------------------------------------------------------------------
 int_orders AS (
 
@@ -38,9 +39,9 @@ int_orders AS (
         order_id,
         order_status
 
-    FROM {{ ref('int_orders__enriched') }}
+    FROM {{ ref('int_orders__with_revenue') }}
 
-    -- Only completed orders contribute to revenue
+    -- Only completed orders contribute to revenue (ADR-019)
     WHERE order_status = 4
 
 ),
@@ -55,14 +56,13 @@ completed_items AS (
         oi.product_name,
         oi.brand_name,
         oi.category_name,
+        oi.order_id,
 
-        -- Revenue per order line: unit price after discount × quantity
-        oi.list_price * oi.quantity * (1 - oi.discount) AS line_revenue,
+        -- Revenue per order line: pre-computed in int_order_items__enriched
+        oi.line_revenue,
 
         -- Units sold per order line
-        oi.quantity AS units_sold,
-
-        oi.order_id
+        oi.quantity AS units_sold
 
     FROM int_order_items AS oi
     INNER JOIN int_orders AS o
@@ -82,13 +82,13 @@ aggregated AS (
         category_name,
 
         -- Total all-time revenue for this product (completed orders only)
-        ROUND(SUM(line_revenue), 2)      AS total_revenue,
+        ROUND(SUM(line_revenue), 2)     AS total_revenue,
 
         -- Total units sold all-time
-        SUM(units_sold)                  AS units_sold,
+        SUM(units_sold)                 AS units_sold,
 
         -- Number of distinct orders containing this product
-        COUNT(DISTINCT order_id)         AS order_count
+        COUNT(DISTINCT order_id)        AS order_count
 
     FROM completed_items
 

@@ -3,19 +3,20 @@
 -- Layer: Mart
 -- Materialisation: incremental (merge) — ADR-008
 -- Description: One row per order, fully enriched with customer, store, and
---              staff dimensions. This is the central mart model — it powers
---              the monthly order trend, on-time delivery, and operations KPIs
---              in Metabase.
+--              staff dimensions, plus pre-computed order-level revenue.
+--              This is the central mart model — it powers the monthly order
+--              trend, on-time delivery, revenue, and operations KPIs in
+--              Metabase.
 --
 -- Incremental strategy:
 --   - unique_key: order_id
 --   - strategy: merge (BigQuery)
 --   - filter: only processes orders whose order_date is >= the latest
---     order_date already in the table (catches new orders AND status updates
---     on recent orders)
+--     order_date already in the table minus 7 days (catches new orders
+--     AND status updates on recent orders)
 --   - First run: dbt run --full-refresh --select orders
 --
--- Depends on: int_orders__enriched
+-- Depends on: int_orders__with_revenue
 -- Consumed by: Metabase dashboard (orders KPIs)
 -- =============================================================================
 
@@ -36,11 +37,12 @@
 WITH
 
 -- ---------------------------------------------------------------------------
--- Base CTE — renamed from 'source' (reserved word in BigQuery)
+-- Base: enriched orders with pre-computed revenue (one row per order)
+-- Revenue metrics are NULL for non-completed orders (ADR-019)
 -- ---------------------------------------------------------------------------
 int_orders AS (
 
-    SELECT * FROM {{ ref('int_orders__enriched') }}
+    SELECT * FROM {{ ref('int_orders__with_revenue') }}
 
 ),
 
@@ -74,8 +76,9 @@ final AS (
 
         -- ---------------------------------------------------------------------
         -- Order status
-        -- Raw integer kept for performant filtering in Metabase
         -- ---------------------------------------------------------------------
+
+        -- Raw integer kept for performant filtering in Metabase
         order_status,
 
         -- Human-readable label (Pending / Processing / Rejected / Completed)
@@ -128,7 +131,20 @@ final AS (
         -- ---------------------------------------------------------------------
         staff_id,
         staff_first_name,
-        staff_last_name
+        staff_last_name,
+
+        -- ---------------------------------------------------------------------
+        -- Revenue metrics (NULL for non-completed orders — ADR-019)
+        -- ---------------------------------------------------------------------
+
+        -- Total revenue for this order after discounts
+        order_revenue,
+
+        -- Total units sold across all product lines
+        order_units_sold,
+
+        -- Number of distinct product lines in this order
+        order_line_count
 
     FROM filtered
 

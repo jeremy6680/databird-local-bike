@@ -1,0 +1,103 @@
+models:
+  - name: int_orders__with_revenue
+    description: "{{ doc('int_orders__with_revenue') }}"
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('int_orders__enriched')
+
+    columns:
+      - name: order_id
+        description: "Primary key — unique identifier for each order."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_status
+        description: "Raw order status integer (1=Pending, 2=Processing, 3=Rejected, 4=Completed)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: accepted_order_status_values
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+
+      - name: order_status_label
+        description: "Human-readable order status label decoded from order_status."
+        data_tests:
+          - not_null
+
+      - name: order_date
+        description: "Date the order was placed."
+        data_tests:
+          - not_null
+
+      - name: required_date
+        description: "Date by which the order is required to be delivered."
+
+      - name: shipped_date
+        description: "Date the order was shipped. NULL if not yet shipped."
+
+      - name: delivery_delay_days
+        description: "Difference in days between shipped_date and required_date. Positive = late, negative = early, NULL = not yet shipped."
+
+      - name: customer_id
+        description: "Foreign key to the customer who placed the order."
+        data_tests:
+          - not_null
+
+      - name: customer_first_name
+        description: "Customer first name."
+
+      - name: customer_last_name
+        description: "Customer last name."
+
+      - name: customer_full_name
+        description: "Customer full name (first + last)."
+
+      - name: customer_email
+        description: "Customer email address."
+
+      - name: customer_phone
+        description: "Customer phone number."
+
+      - name: customer_city
+        description: "City of the customer's address."
+
+      - name: customer_state
+        description: "US state of the customer's address."
+
+      - name: store_id
+        description: "Foreign key to the store where the order was placed."
+        data_tests:
+          - not_null
+
+      - name: store_name
+        description: "Name of the store."
+
+      - name: store_city
+        description: "City where the store is located."
+
+      - name: store_state
+        description: "US state where the store is located."
+
+      - name: staff_id
+        description: "Foreign key to the staff member who handled the order."
+        data_tests:
+          - not_null
+
+      - name: staff_first_name
+        description: "Staff member first name."
+
+      - name: staff_last_name
+        description: "Staff member last name."
+
+      - name: order_revenue
+        description: "Total revenue for this order after discounts. NULL for non-completed orders (status != 4)."
+
+      - name: order_units_sold
+        description: "Total units sold across all lines for this order. NULL for non-completed orders."
+
+      - name: order_line_count
+        description: "Number of distinct product lines in this order. Populated for all order statuses."

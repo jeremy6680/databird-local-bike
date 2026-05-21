@@ -36,9 +36,9 @@ models:
 
       - name: total_revenue
         description: >
-          Total revenue for this store and month, computed as
-          SUM(list_price × quantity × (1 - discount)) across all completed
-          orders (status = 4). Rounded to 2 decimal places.
+          Total revenue for this store and month, aggregated from
+          order_revenue in int_orders__with_revenue (completed orders
+          only, status = 4). Rounded to 2 decimal places.
         data_tests:
           - not_null
 
