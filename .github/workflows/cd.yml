@@ -93,3 +93,16 @@ jobs:
           name: prod-manifest
           path: ./target/manifest.json
           retention-days: 90
+
+      # --------------------------------------------------------
+      # 10. Deploy dbt docs to Netlify using Netlify CLI GitHub Action
+      #     Make sure to set NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID
+      #     as GitHub Secrets in your repository settings.
+      # --------------------------------------------------------
+      - name: Deploy dbt docs to Netlify
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=target --prod
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
