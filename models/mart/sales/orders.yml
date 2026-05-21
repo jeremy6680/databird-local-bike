@@ -2,11 +2,7 @@ version: 2
 
 models:
   - name: orders
-    description: >
-      One row per order, fully enriched with customer, store, and staff dimensions.
-      Central mart model powering the monthly order trend, on-time delivery rate,
-      and operations KPIs in Metabase.
-      Materialised as an incremental table (merge strategy on order_id).
+    description: "{{ doc('orders') }}"
 
     data_tests:
       - dbt_utils.equal_rowcount:
