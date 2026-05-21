@@ -1,0 +1,114 @@
+version: 2
+
+models:
+  - name: orders
+    description: >
+      One row per order, fully enriched with customer, store, and staff dimensions.
+      Central mart model powering the monthly order trend, on-time delivery rate,
+      and operations KPIs in Metabase.
+      Materialised as an incremental table (merge strategy on order_id).
+
+    data_tests:
+      - dbt_utils.equal_rowcount:
+          compare_model: ref('int_orders__enriched')
+
+    columns:
+      - name: order_id
+        description: Unique identifier for each order (primary key).
+        data_tests:
+          - unique
+          - not_null
+
+      - name: order_status
+        description: >
+          Raw integer status code from the source system.
+          Kept alongside order_status_label for performant filtering.
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status
+              values: [1, 2, 3, 4]
+              quote: false
+
+      - name: order_status_label
+        description: >
+          Human-readable order status label decoded from order_status.
+          Values: Pending | Processing | Rejected | Completed.
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status_label
+              values: ["Pending", "Processing", "Rejected", "Completed"]
+
+      - name: order_date
+        description: Date the order was placed.
+        data_tests:
+          - not_null
+
+      - name: required_date
+        description: Date by which the customer requested delivery.
+        data_tests:
+          - not_null
+
+      - name: shipped_date
+        description: >
+          Date the order was shipped. NULL for orders not yet shipped
+          (status Pending, Processing, or Rejected).
+
+      - name: delivery_delay_days
+        description: >
+          Difference in calendar days between shipped_date and required_date.
+          Positive = late, negative = early, NULL = not yet shipped.
+
+      - name: is_on_time
+        description: >
+          TRUE if the order shipped on or before required_date.
+          FALSE if late. NULL if not yet shipped.
+
+      - name: order_year_month
+        description: >
+          Year-month string derived from order_date (format: YYYY-MM).
+          Used for monthly aggregations in Metabase charts.
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        description: Foreign key to the customer who placed the order.
+        data_tests:
+          - not_null
+
+      - name: customer_full_name
+        description: Full name of the customer (first_name + last_name).
+
+      - name: customer_city
+        description: City of the customer's billing address.
+
+      - name: customer_state
+        description: US state of the customer's billing address.
+
+      - name: store_id
+        description: Foreign key to the store that handled the order.
+        data_tests:
+          - not_null
+
+      - name: store_name
+        description: Name of the store (e.g. Santa Cruz Bikes).
+        data_tests:
+          - not_null
+
+      - name: store_city
+        description: City where the store is located.
+
+      - name: store_state
+        description: US state where the store is located.
+
+      - name: staff_id
+        description: Foreign key to the staff member who processed the order.
+        data_tests:
+          - not_null
+
+      - name: staff_first_name
+        description: First name of the staff member who processed the order.
+
+      - name: staff_last_name
+        description: Last name of the staff member who processed the order.
