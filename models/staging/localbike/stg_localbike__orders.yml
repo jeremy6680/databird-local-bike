@@ -44,15 +44,6 @@ models:
                 values: [1, 2, 3, 4]
                 quote: false
 
-      - name: order_status_label
-        description: "Human-readable label derived from order_status."
-        data_tests:
-          - not_null
-          - accepted_values:
-              name: unexpected_order_status_label
-              arguments:
-                values: ["Pending", "Processing", "Rejected", "Completed"]
-
       - name: order_date
         description: "Date the order was placed."
         data_tests:
@@ -65,6 +56,3 @@ models:
 
       - name: shipped_date
         description: "Date the order was shipped. Nullable — null if not yet shipped."
-
-      - name: days_to_ship
-        description: "Difference in days between shipped_date and required_date. Positive = late. Null if not yet shipped."

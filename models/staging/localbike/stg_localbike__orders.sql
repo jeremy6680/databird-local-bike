@@ -2,9 +2,9 @@
 -- Model: stg_localbike__orders
 -- Layer: Staging
 -- Description: Light cleaning and standardisation of the orders source table.
---              Casts all columns to their correct types, decodes order_status
---              into a human-readable label, and computes a shipping delay
---              column used by downstream KPI models.
+--              Casts all columns to their correct types.
+--              Status decoding and delay computation are handled downstream
+--              in int_orders__enriched.
 -- Source: localbike.orders
 -- Depends on: source('localbike', 'orders')
 -- Consumed by: int_orders__enriched
@@ -14,7 +14,6 @@ WITH
 
 source AS (
 
-    -- Pull all raw rows from the orders source table
     SELECT * FROM {{ source('localbike', 'orders') }}
 
 ),
@@ -37,48 +36,19 @@ renamed AS (
 
         -- -----------------------------------------------------------------------
         -- Order status
-        -- Integer in source (1–4); decoded into a human-readable label.
-        -- 1 = Pending, 2 = Processing, 3 = Rejected, 4 = Completed
-        -- Reference: DataBird dataset documentation
+        -- Raw integer (1–4) — decoded into a label in int_orders__enriched
         -- -----------------------------------------------------------------------
-        CAST(order_status AS INT64) AS order_status,
-
-        CASE CAST(order_status AS INT64)
-            WHEN 1 THEN 'Pending'  
-            WHEN 2 THEN 'Processing'  
-            WHEN 3 THEN 'Rejected' 
-            WHEN 4 THEN 'Completed' 
-            ELSE 'Unknown'
-        END AS order_status_label,
+        order_date,
 
         -- -----------------------------------------------------------------------
         -- Dates
-        -- order_date and required_date are DATE in source — no cast needed.
+        -- order_date and required_date are native DATE columns — no cast needed.
         -- shipped_date is STRING in source — NULLIF removes the literal 'NULL'
-        -- string before SAFE_CAST converts to DATE (consistent with ADR-014).
+        -- string before SAFE_CAST converts to DATE (ADR-014).
         -- -----------------------------------------------------------------------
-
-        -- order_date: native DATE in source
-        order_date,
-
-        -- required_date: native DATE in source
         required_date,
-
-        -- shipped_date: STRING in source, nullable
-        SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE) AS shipped_date,
-
-        -- -----------------------------------------------------------------------
-        -- Derived column: shipping delay in calendar days
-        -- Positive value = shipped after the required date (late)
-        -- Negative value = shipped before the required date (on time)
-        -- NULL when shipped_date is null (order not yet shipped)
-        -- Used by the orders mart for the on-time delivery KPI
-        -- -----------------------------------------------------------------------
-        DATE_DIFF(
-            SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE),
-            required_date,
-            DAY
-        ) AS days_to_ship
+        CAST(order_status AS INT64) AS order_status,
+        SAFE_CAST(NULLIF(shipped_date, 'NULL') AS DATE) AS shipped_date
 
     FROM source
 
