@@ -23,8 +23,9 @@ models:
           - not_null
           - accepted_values:
               name: unexpected_order_status
-              values: [1, 2, 3, 4]
-              quote: false
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
 
       - name: order_status_label
         description: >
@@ -34,7 +35,8 @@ models:
           - not_null
           - accepted_values:
               name: unexpected_order_status_label
-              values: ["Pending", "Processing", "Rejected", "Completed"]
+              arguments:
+                values: ["Pending", "Processing", "Rejected", "Completed"]
 
       - name: order_date
         description: Date the order was placed.
@@ -72,6 +74,12 @@ models:
         description: Foreign key to the customer who placed the order.
         data_tests:
           - not_null
+
+      - name: customer_first_name
+        description: First name of the customer who placed the order.
+
+      - name: customer_last_name
+        description: Last name of the customer who placed the order.
 
       - name: customer_full_name
         description: Full name of the customer (first_name + last_name).
