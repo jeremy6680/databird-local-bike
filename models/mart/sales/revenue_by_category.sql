@@ -8,7 +8,7 @@
 --              and category trend KPIs in Metabase.
 --
 -- Grain: category_id × order_year_month
--- Depends on: int_order_items__enriched
+-- Depends on: int_order_items__enriched, int_orders__with_revenue
 -- Consumed by: Metabase dashboard (revenue by category KPIs)
 -- =============================================================================
 
@@ -21,8 +21,8 @@
 WITH
 
 -- ---------------------------------------------------------------------------
--- Source: enriched order items (one row per order line, with product,
--- brand, and category dimensions already joined)
+-- Source: enriched order items — line-level data with product/category dims
+-- One row per order line (order_id + item_id)
 -- ---------------------------------------------------------------------------
 int_order_items AS (
 
@@ -31,8 +31,9 @@ int_order_items AS (
 ),
 
 -- ---------------------------------------------------------------------------
--- Source: enriched orders — used to filter completed orders only
--- (order_status = 4) and to get the order_date for monthly bucketing
+-- Source: enriched orders with revenue — used to filter completed orders
+-- and retrieve order_date for monthly bucketing
+-- order_revenue is NULL for non-completed orders (ADR-019)
 -- ---------------------------------------------------------------------------
 int_orders AS (
 
@@ -41,9 +42,9 @@ int_orders AS (
         order_date,
         order_status
 
-    FROM {{ ref('int_orders__enriched') }}
+    FROM {{ ref('int_orders__with_revenue') }}
 
-    -- Only completed orders contribute to revenue
+    -- Only completed orders contribute to revenue (ADR-019)
     WHERE order_status = 4
 
 ),
@@ -59,8 +60,8 @@ completed_items AS (
         oi.category_name,
         oi.order_id,
 
-        -- Revenue per order line: unit price after discount × quantity
-        oi.list_price * oi.quantity * (1 - oi.discount) AS line_revenue,
+        -- Revenue per order line: pre-computed in int_order_items__enriched
+        oi.line_revenue,
 
         -- Units sold per order line
         oi.quantity AS units_sold,
@@ -93,13 +94,13 @@ final AS (
         -- ------------------------------------------------------------------
 
         -- Total revenue for this category and month (completed orders only)
-        ROUND(SUM(line_revenue), 2)  AS total_revenue,
+        ROUND(SUM(line_revenue), 2)         AS total_revenue,
 
         -- Total units sold for this category and month
-        SUM(units_sold)              AS units_sold,
+        SUM(units_sold)                     AS units_sold,
 
         -- Number of distinct orders containing this category
-        COUNT(DISTINCT order_id)     AS order_count
+        COUNT(DISTINCT order_id)            AS order_count
 
     FROM completed_items
 

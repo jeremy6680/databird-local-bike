@@ -30,9 +30,10 @@ models:
 
       - name: total_revenue
         description: >
-          Total revenue for this category and month, computed as
-          SUM(list_price × quantity × (1 - discount)) across all completed
-          orders (status = 4). Rounded to 2 decimal places.
+          Total revenue for this category and month, aggregated from
+          line_revenue in int_order_items__enriched, filtered to completed
+          orders only (status = 4) via int_orders__with_revenue.
+          Rounded to 2 decimal places.
         data_tests:
           - not_null
 

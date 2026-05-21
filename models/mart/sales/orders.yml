@@ -5,8 +5,9 @@ models:
     description: "{{ doc('orders') }}"
 
     data_tests:
+      # Row count must match the new intermediate source (was int_orders__enriched)
       - dbt_utils.equal_rowcount:
-          compare_model: ref('int_orders__enriched')
+          compare_model: ref('int_orders__with_revenue')
 
     columns:
       - name: order_id
@@ -116,3 +117,22 @@ models:
 
       - name: staff_last_name
         description: Last name of the staff member who processed the order.
+
+      # ------------------------------------------------------------------
+      # Revenue metrics — added after refactor (int_orders__with_revenue)
+      # ------------------------------------------------------------------
+
+      - name: order_revenue
+        description: >
+          Total revenue for this order after discounts.
+          NULL for non-completed orders (status != 4) — ADR-019.
+
+      - name: order_units_sold
+        description: >
+          Total units sold across all product lines for this order.
+          NULL for non-completed orders (status != 4).
+
+      - name: order_line_count
+        description: >
+          Number of distinct product lines in this order.
+          Populated for all order statuses (useful for operations analysis).

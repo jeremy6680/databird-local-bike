@@ -7,7 +7,7 @@
 --              LTV and top customers KPIs in Metabase.
 --
 -- Grain: customer_id
--- Depends on: int_orders__enriched, int_order_items__enriched
+-- Depends on: int_orders__with_revenue
 -- Consumed by: Metabase dashboard (customer KPIs)
 -- =============================================================================
 
@@ -20,63 +20,12 @@
 WITH
 
 -- ---------------------------------------------------------------------------
--- Source: enriched orders — customer dimensions + order dates + status
+-- Source: enriched orders with pre-computed revenue (one row per order)
+-- order_revenue is NULL for non-completed orders (ADR-019)
 -- ---------------------------------------------------------------------------
 int_orders AS (
 
-    SELECT
-        order_id,
-        customer_id,
-        customer_full_name,
-        customer_city,
-        customer_state,
-        order_date,
-        order_status
-
-    FROM {{ ref('int_orders__enriched') }}
-
-),
-
--- ---------------------------------------------------------------------------
--- Source: enriched order items — line-level pricing for revenue calculation
--- ---------------------------------------------------------------------------
-int_order_items AS (
-
-    SELECT
-        order_id,
-        list_price,
-        quantity,
-        discount
-
-    FROM {{ ref('int_order_items__enriched') }}
-
-),
-
--- ---------------------------------------------------------------------------
--- Compute revenue per completed order
--- Only completed orders (status = 4) contribute to revenue and LTV
--- ---------------------------------------------------------------------------
-revenue_per_order AS (
-
-    SELECT
-        oi.order_id,
-        o.customer_id,
-        o.order_date,
-
-        -- Revenue per order: sum of all line revenues
-        SUM(oi.list_price * oi.quantity * (1 - oi.discount)) AS order_revenue
-
-    FROM int_order_items AS oi
-    INNER JOIN int_orders AS o
-        ON oi.order_id = o.order_id
-
-    -- Only completed orders contribute to revenue
-    WHERE o.order_status = 4
-
-    GROUP BY
-        oi.order_id,
-        o.customer_id,
-        o.order_date
+    SELECT * FROM {{ ref('int_orders__with_revenue') }}
 
 ),
 
@@ -88,9 +37,9 @@ all_orders_per_customer AS (
 
     SELECT
         customer_id,
-        COUNT(DISTINCT order_id)  AS total_order_count,
-        MIN(order_date)           AS first_order_date,
-        MAX(order_date)           AS last_order_date
+        COUNT(DISTINCT order_id)    AS total_order_count,
+        MIN(order_date)             AS first_order_date,
+        MAX(order_date)             AS last_order_date
 
     FROM int_orders
 
@@ -100,25 +49,29 @@ all_orders_per_customer AS (
 
 -- ---------------------------------------------------------------------------
 -- Aggregate revenue metrics across completed orders only
+-- COALESCE on order_revenue is safe — NULL means non-completed (ADR-019)
 -- ---------------------------------------------------------------------------
 revenue_per_customer AS (
 
     SELECT
         customer_id,
 
-        -- Lifetime value: total revenue across all completed orders
-        ROUND(SUM(order_revenue), 2)                                AS lifetime_value,
+        -- Number of completed orders
+        COUNT(DISTINCT order_id)                                        AS completed_order_count,
 
-        -- Number of completed orders (used for avg basket calculation)
-        COUNT(DISTINCT order_id)                                    AS completed_order_count,
+        -- Lifetime value: total revenue across all completed orders
+        ROUND(SUM(order_revenue), 2)                                    AS lifetime_value,
 
         -- Average basket: LTV / number of completed orders
         ROUND(
             SUM(order_revenue) / NULLIF(COUNT(DISTINCT order_id), 0),
             2
-        )                                                           AS avg_basket
+        )                                                               AS avg_basket
 
-    FROM revenue_per_order
+    FROM int_orders
+
+    -- Only completed orders contribute to revenue metrics (ADR-019)
+    WHERE order_status = 4
 
     GROUP BY customer_id
 
@@ -126,7 +79,6 @@ revenue_per_customer AS (
 
 -- ---------------------------------------------------------------------------
 -- Extract distinct customer dimensions (one row per customer)
--- Avoids an inline subquery in the final SELECT — ST05
 -- ---------------------------------------------------------------------------
 customer_dims AS (
 
@@ -171,14 +123,14 @@ final AS (
         ao.last_order_date,
 
         -- ------------------------------------------------------------------
-        -- Revenue metrics (completed orders only)
+        -- Revenue metrics (completed orders only — ADR-019)
         -- ------------------------------------------------------------------
 
         -- Number of completed orders (may differ from total_order_count)
-        COALESCE(rc.completed_order_count, 0) AS completed_order_count,
+        COALESCE(rc.completed_order_count, 0)   AS completed_order_count,
 
         -- Lifetime value — 0 for customers with no completed orders
-        COALESCE(rc.lifetime_value, 0)        AS lifetime_value,
+        COALESCE(rc.lifetime_value, 0)          AS lifetime_value,
 
         -- Average basket — NULL for customers with no completed orders
         rc.avg_basket
@@ -189,7 +141,6 @@ final AS (
     LEFT JOIN revenue_per_customer AS rc
         ON ao.customer_id = rc.customer_id
 
-    -- Join pre-extracted customer dimensions
     LEFT JOIN customer_dims AS cd
         ON ao.customer_id = cd.customer_id
 
