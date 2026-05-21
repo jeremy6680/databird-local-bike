@@ -5,6 +5,7 @@ runaway_limit = 10
 max_line_length = 88
 indent_unit = space
 tab_space_size = 4
+exclude_rules = ST06, LT01
 
 # Exclude generated and third-party directories from linting
 ignore_paths = dbt_packages,target
@@ -32,3 +33,4 @@ extended_capitalisation_policy = upper
 
 [sqlfluff:rules:capitalisation.types]
 extended_capitalisation_policy = upper
+
