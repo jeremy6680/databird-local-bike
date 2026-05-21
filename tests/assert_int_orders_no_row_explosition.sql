@@ -8,22 +8,22 @@
   This test fails if any rows were added or lost during the enrichment joins.
 */
 
-with
+WITH
 
-orders_staging as (
-    select count(*) as row_count from {{ ref('stg_localbike__orders') }}
+orders_staging AS (
+    SELECT COUNT(*) AS row_count FROM {{ ref('stg_localbike__orders') }}
 ),
 
-orders_enriched as (
-    select count(*) as row_count from {{ ref('int_orders__enriched') }}
+orders_enriched AS (
+    SELECT COUNT(*) AS row_count FROM {{ ref('int_orders__enriched') }}
 
 )
 
-select
-    orders_staging.row_count    as staging_count,
-    orders_enriched.row_count   as enriched_count
-from orders_staging
-cross join orders_enriched
+SELECT
+    orders_staging.row_count AS staging_count,
+    orders_enriched.row_count AS enriched_count
+FROM orders_staging
+CROSS JOIN orders_enriched
 
 -- A non-empty result means the test FAILS
-where orders_staging.row_count != orders_enriched.row_count
+WHERE orders_staging.row_count != orders_enriched.row_count
