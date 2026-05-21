@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: top_products
+    description: "{{ doc('top_products') }}"
+
+    columns:
+      - name: product_id
+        description: Unique identifier for the product (primary key).
+        data_tests:
+          - unique
+          - not_null
+
+      - name: product_name
+        description: Name of the product.
+        data_tests:
+          - not_null
+
+      - name: brand_name
+        description: Name of the brand that manufactures the product.
+        data_tests:
+          - not_null
+
+      - name: category_name
+        description: Name of the product category (e.g. Mountain Bikes, Road Bikes).
+        data_tests:
+          - not_null
+
+      - name: total_revenue
+        description: >
+          Total all-time revenue for this product, computed as
+          SUM(list_price × quantity × (1 - discount)) across all completed
+          orders (status = 4). Rounded to 2 decimal places.
+        data_tests:
+          - not_null
+
+      - name: units_sold
+        description: >
+          Total number of units sold all-time across all completed orders.
+        data_tests:
+          - not_null
+
+      - name: order_count
+        description: >
+          Number of distinct completed orders containing this product.
+        data_tests:
+          - not_null
+
+      - name: revenue_rank
+        description: >
+          Dense rank of the product by total_revenue descending.
+          Rank 1 = highest revenue product. No gaps in ranking
+          (DENSE_RANK, not RANK).
+        data_tests:
+          - not_null

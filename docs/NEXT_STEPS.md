@@ -5,42 +5,7 @@ Updated after each work session. Completed items are moved to the bottom.
 
 ---
 
-## 🔴 Now — Mart layer
-
-- [ ] **Write `orders` (incremental)**
-  - Source: `int_orders__enriched`
-  - Strategy: `merge`, `unique_key = 'order_id'`, `is_incremental()` filter on `order_date`
-  - Evaluate `partition_by` (order_date) and `cluster_by` (store_id) for BigQuery
-  - Four-section docs block (mart template) in `_sales__docs.md`
-
-- [ ] **Write `revenue_by_store`**
-  - Source: `int_orders__enriched`
-  - Grain: one row per store × month
-  - Columns: `store_id`, `store_name`, `year_month`, `total_revenue`, `order_count`
-
-- [ ] **Write `revenue_by_category`**
-  - Source: `int_order_items__enriched`
-  - Grain: one row per category × month
-  - Columns: `category_id`, `category_name`, `year_month`, `total_revenue`, `units_sold`
-
-- [ ] **Write `top_products`**
-  - Source: `int_order_items__enriched`
-  - Grain: one row per product
-  - Columns: `product_id`, `product_name`, `brand_name`, `category_name`, `total_revenue`, `units_sold`, `revenue_rank`
-
-- [ ] **Write `customer_summary`**
-  - Source: `int_orders__enriched` + `int_order_items__enriched`
-  - Grain: one row per customer
-  - Columns: `customer_id`, `full_name`, `order_count`, `avg_basket`, `lifetime_value`, `first_order_date`, `last_order_date`
-
-- [ ] **Add mart tests and docs**
-  - `unique` + `not_null` on all PKs
-  - Four-section docs block for each mart model (mandatory per CLAUDE.md)
-  - Verify: `dbt test --select mart`
-
----
-
-## 🟢 Later — BI and presentation
+## 🔴 Now — BI and presentation
 
 - [ ] **Set up Metabase locally** (Docker)
   - Connect to `dbt_local_bike_prod` in BigQuery
@@ -164,3 +129,36 @@ Updated after each work session. Completed items are moved to the bottom.
   - `order_status_label` and `delivery_delay_days` now computed once in `int_orders__enriched`
   - Fixed misaligned comments in `int_orders__enriched` (residual from refactor)
   - Added ADR-017
+
+### — Mart layer
+
+- [x] **Write `orders` (incremental)**
+  - Source: `int_orders__enriched`
+  - Strategy: `merge`, `unique_key = 'order_id'`, `is_incremental()` filter on `order_date`
+  - Evaluate `partition_by` (order_date) and `cluster_by` (store_id) for BigQuery
+  - Four-section docs block (mart template) in `_sales__docs.md`
+
+- [x] **Write `revenue_by_store`**
+  - Source: `int_orders__enriched`
+  - Grain: one row per store × month
+  - Columns: `store_id`, `store_name`, `year_month`, `total_revenue`, `order_count`
+
+- [x] **Write `revenue_by_category`**
+  - Source: `int_order_items__enriched`
+  - Grain: one row per category × month
+  - Columns: `category_id`, `category_name`, `year_month`, `total_revenue`, `units_sold`
+
+- [x] **Write `top_products`**
+  - Source: `int_order_items__enriched`
+  - Grain: one row per product
+  - Columns: `product_id`, `product_name`, `brand_name`, `category_name`, `total_revenue`, `units_sold`, `revenue_rank`
+
+- [x] **Write `customer_summary`**
+  - Source: `int_orders__enriched` + `int_order_items__enriched`
+  - Grain: one row per customer
+  - Columns: `customer_id`, `full_name`, `order_count`, `avg_basket`, `lifetime_value`, `first_order_date`, `last_order_date`
+
+- [x] **Add mart tests and docs**
+  - `unique` + `not_null` on all PKs
+  - Four-section docs block for each mart model (mandatory per CLAUDE.md)
+  - Verify: `dbt test --select mart`

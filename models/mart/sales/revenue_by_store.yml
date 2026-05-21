@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: revenue_by_store
+    description: "{{ doc('revenue_by_store') }}"
+
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - store_id
+            - order_year_month
+
+    columns:
+      - name: store_id
+        description: Foreign key to the store. Part of the composite grain key.
+        data_tests:
+          - not_null
+
+      - name: store_name
+        description: Name of the store (e.g. Santa Cruz Bikes).
+        data_tests:
+          - not_null
+
+      - name: store_city
+        description: City where the store is located.
+
+      - name: store_state
+        description: US state where the store is located.
+
+      - name: order_year_month
+        description: >
+          Calendar month in YYYY-MM format, derived from order_date.
+          Part of the composite grain key (store_id × order_year_month).
+        data_tests:
+          - not_null
+
+      - name: total_revenue
+        description: >
+          Total revenue for this store and month, computed as
+          SUM(list_price × quantity × (1 - discount)) across all completed
+          orders (status = 4). Rounded to 2 decimal places.
+        data_tests:
+          - not_null
+
+      - name: order_count
+        description: >
+          Number of completed orders (status = 4) for this store and month.
+        data_tests:
+          - not_null
+
+      - name: avg_order_revenue
+        description: >
+          Average revenue per completed order for this store and month
+          (total_revenue / order_count). NULL-safe via NULLIF.
