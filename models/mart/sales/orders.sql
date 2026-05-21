@@ -21,33 +21,41 @@
 
 {{
     config(
-        materialized  = 'incremental',
-        unique_key    = 'order_id',
+        materialized         = 'incremental',
+        unique_key           = 'order_id',
         incremental_strategy = 'merge',
-        partition_by  = {
+        partition_by         = {
             'field': 'order_date',
             'data_type': 'date',
             'granularity': 'month'
         },
-        cluster_by    = ['store_id', 'order_status']
+        cluster_by = ['store_id', 'order_status']
     )
 }}
 
 WITH
 
-source AS (
+-- ---------------------------------------------------------------------------
+-- Base CTE — renamed from 'source' (reserved word in BigQuery)
+-- ---------------------------------------------------------------------------
+int_orders AS (
 
     SELECT * FROM {{ ref('int_orders__enriched') }}
 
-    -- -------------------------------------------------------------------------
-    -- Incremental filter: on incremental runs, only process rows whose
-    -- order_date falls within the window already present in the table.
-    -- The 7-day lookback (INTERVAL 7 DAY) ensures we catch late status updates
-    -- (e.g. an order placed last week that just moved to 'Completed').
-    -- On a full-refresh run, this block is ignored entirely.
-    -- -------------------------------------------------------------------------
+),
+
+-- ---------------------------------------------------------------------------
+-- Incremental filter: on incremental runs, only process rows whose
+-- order_date falls within the window already present in the table.
+-- The 7-day lookback ensures we catch late status updates on recent orders.
+-- On a full-refresh run, this block is ignored entirely.
+-- ---------------------------------------------------------------------------
+filtered AS (
+
+    SELECT * FROM int_orders
+
     {% if is_incremental() %}
-        WHERE source.order_date >= (
+        WHERE order_date >= (
             SELECT DATE_SUB(MAX(this_table.order_date), INTERVAL 7 DAY)
             FROM {{ this }} AS this_table
         )
@@ -66,9 +74,8 @@ final AS (
 
         -- ---------------------------------------------------------------------
         -- Order status
+        -- Raw integer kept for performant filtering in Metabase
         -- ---------------------------------------------------------------------
-
-        -- Raw integer status — kept for performant filtering in Metabase
         order_status,
 
         -- Human-readable label (Pending / Processing / Rejected / Completed)
@@ -87,41 +94,41 @@ final AS (
         --   positive = late, negative = early, NULL = not yet shipped
         delivery_delay_days,
 
-        -- Boolean flag: TRUE when the order shipped on or before required_date
-        -- NULL when shipped_date is NULL (not yet shipped)
-        customer_id,
+        -- TRUE if shipped on or before required_date, FALSE if late,
+        -- NULL if not yet shipped
+        CASE
+            WHEN shipped_date IS NULL     THEN NULL
+            WHEN delivery_delay_days <= 0 THEN TRUE
+            ELSE FALSE
+        END AS is_on_time,
 
-        -- Convenience column: year-month of order_date for monthly aggregations
-        customer_full_name,
+        -- Year-month string for monthly aggregations in Metabase (format: YYYY-MM)
+        FORMAT_DATE('%Y-%m', order_date) AS order_year_month,
 
         -- ---------------------------------------------------------------------
         -- Customer dimensions
         -- ---------------------------------------------------------------------
+        customer_id,
+        customer_full_name,
         customer_city,
         customer_state,
-        store_id,
-        store_name,
 
         -- ---------------------------------------------------------------------
         -- Store dimensions
         -- ---------------------------------------------------------------------
+        store_id,
+        store_name,
         store_city,
         store_state,
-        staff_id,
-        staff_first_name,
 
         -- ---------------------------------------------------------------------
         -- Staff dimensions
         -- ---------------------------------------------------------------------
-        staff_last_name,
-        CASE
-            WHEN shipped_date IS NULL THEN NULL
-            WHEN delivery_delay_days <= 0 THEN TRUE
-            ELSE FALSE
-        END AS is_on_time,
-        FORMAT_DATE('%Y-%m', order_date) AS order_year_month
+        staff_id,
+        staff_first_name,
+        staff_last_name
 
-    FROM source
+    FROM filtered
 
 )
 
