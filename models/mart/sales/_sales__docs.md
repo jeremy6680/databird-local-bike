@@ -163,3 +163,43 @@ One row per `product_id`. Uniqueness enforced by `unique` + `not_null` tests.
 - Metabase — Top 10 products by revenue (bar chart)
 
 {% enddocs %}
+
+{% docs customer_summary %}
+
+## customer_summary
+
+**Layer:** Mart | **Materialisation:** table | **Grain:** one row per customer
+
+### Purpose
+
+Summarises each customer's order history, lifetime value, and average basket.
+Powers the customer LTV and top customers KPIs in Metabase.
+
+### Business logic
+
+- **total_order_count** and **first/last_order_date** include orders of
+  any status — a placed order is a placed order regardless of outcome.
+- **lifetime_value**, **completed_order_count**, and **avg_basket** count
+  only completed orders (order_status = 4) — rejected or pending orders
+  do not generate revenue.
+- Customers with no completed orders get `lifetime_value = 0`,
+  `completed_order_count = 0`, and `avg_basket = NULL`.
+- Revenue per order line: `list_price × quantity × (1 - discount)`
+
+### Grain
+
+One row per `customer_id`. Uniqueness enforced by `unique` + `not_null` tests.
+
+### Upstream dependencies
+
+| Model                       | Role                                     |
+| --------------------------- | ---------------------------------------- |
+| `int_orders__enriched`      | Customer dimensions, order dates, status |
+| `int_order_items__enriched` | Line-level pricing for LTV calculation   |
+
+### Downstream consumers
+
+- Metabase — Customer LTV (ranking table)
+- Metabase — Average basket per customer (KPI card)
+
+{% enddocs %}
