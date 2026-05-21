@@ -50,3 +50,42 @@ First run: `dbt run --full-refresh --select orders`
 - Metabase dashboard — operations drill-down by store and staff
 
 {% enddocs %}
+
+{% docs revenue_by_store %}
+
+## revenue_by_store
+
+**Layer:** Mart | **Materialisation:** table | **Grain:** one row per store × calendar month
+
+### Purpose
+
+Aggregates completed order revenue and order counts by store and calendar month.
+This is the primary model powering the monthly revenue bar chart and store
+comparison KPIs in Metabase.
+
+### Business logic
+
+- Only **completed orders** (order_status = 4) contribute to revenue figures.
+  Pending, Processing, and Rejected orders are excluded.
+- Revenue per order line is computed as:
+  `list_price × quantity × (1 - discount)`
+- Line-level revenue is summed at order level, then aggregated by store × month.
+
+### Grain
+
+One row per `store_id` × `order_year_month`.
+Uniqueness is enforced by the `dbt_utils.unique_combination_of_columns` test.
+
+### Upstream dependencies
+
+| Model                       | Role                                      |
+| --------------------------- | ----------------------------------------- |
+| `int_orders__enriched`      | Store dimensions and order_year_month     |
+| `int_order_items__enriched` | Line-level pricing (list_price, discount) |
+
+### Downstream consumers
+
+- Metabase — Revenue by store (monthly bar chart)
+- Metabase — Total revenue KPI (filterable by store and period)
+
+{% enddocs %}
