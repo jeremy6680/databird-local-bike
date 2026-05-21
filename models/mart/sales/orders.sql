@@ -109,6 +109,8 @@ final AS (
         -- Customer dimensions
         -- ---------------------------------------------------------------------
         customer_id,
+        customer_first_name,
+        customer_last_name,
         customer_full_name,
         customer_city,
         customer_state,
