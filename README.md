@@ -88,7 +88,7 @@ and singular tests for domain-specific constraints:
 
 - Python 3.11+
 - A GCP Service Account with `BigQuery Data Editor` + `BigQuery Job User` roles
-- Access to the `databird-prep-work-ae` BigQuery project
+- A BigQuery project with the source dataset loaded (or access to an existing one)
 
 ### Install
 
@@ -110,9 +110,9 @@ local_bike:
     dev:
       type: bigquery
       method: service-account-json
-      project: databird-prep-work-ae
-      dataset: dbt_local_bike_dev
-      keyfile_json: "{{ env_var('GCP_SERVICE_ACCOUNT_KEY') }}"
+      project: "{{ env_var('DBT_PROJECT_ID') }}"
+      dataset: "{{ env_var('DBT_DATASET') }}"
+      keyfile_json: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
       location: EU
       threads: 4
       timeout_seconds: 300
@@ -151,13 +151,13 @@ using `--defer` to resolve unmodified upstream `ref()` calls against production 
 
 ### Required GitHub Secrets
 
-| Secret                    | Description                   |
-| ------------------------- | ----------------------------- |
-| `GCP_SERVICE_ACCOUNT_KEY` | Full Service Account JSON     |
-| `DBT_PROJECT_ID`          | `databird-prep-work-ae`       |
-| `DBT_DATASET`             | `dbt_local_bike_prod`         |
-| `NETLIFY_AUTH_TOKEN`      | Netlify personal access token |
-| `NETLIFY_SITE_ID`         | Netlify site ID               |
+| Secret                    | Description                                                                                            |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `GCP_SERVICE_ACCOUNT_KEY` | Full Service Account JSON (roles: `BigQuery Data Editor`, `BigQuery Data Viewer`, `BigQuery Job User`) |
+| `DBT_PROJECT_ID`          | Your BigQuery project ID                                                                               |
+| `DBT_DATASET`             | Target dataset for production models                                                                   |
+| `NETLIFY_AUTH_TOKEN`      | Netlify personal access token                                                                          |
+| `NETLIFY_SITE_ID`         | Netlify site ID                                                                                        |
 
 ---
 
