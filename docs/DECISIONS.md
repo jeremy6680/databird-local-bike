@@ -294,16 +294,46 @@ The `_docs/` folder and its `.gitignore` entry have been removed.
 
 ---
 
-### [ADR-012] order_status labels — unconfirmed mapping
+### [ADR-012] order_status labels — confirmed mapping
 
-**Date:** 2026-05-20
-**Status:** Pending confirmation
+**Date:** 2026-05-21
+**Status:** Decided
 
 **Context:**
 order_status values 1, 2, 3 all have shipped_date = NULL and cannot be
-distinguished by data inference alone. Value 4 = Completed (confirmed).
+distinguished by data inference alone. Mapping was unconfirmed at staging layer build time.
 
-**Action required:** confirm mapping with DataBird before mart layer.
+**Decision:**
+Confirmed with DataBird. The mapping is:
+
+| Value | Label      |
+| ----- | ---------- |
+| 1     | Pending    |
+| 2     | Processing |
+| 3     | Rejected   |
+| 4     | Completed  |
+
+Applied in `stg_localbike__orders` as a `CASE WHEN` expression on `order_status`.
+Rationale: the mapping is a stable, documented source-level decode (equivalent
+to a cast or rename) with no business logic — appropriate for the staging layer.
+
+```sql
+CASE order_status
+    WHEN 1 THEN 'Pending'
+    WHEN 2 THEN 'Processing'
+    WHEN 3 THEN 'Rejected'
+    WHEN 4 THEN 'Completed'
+END AS order_status_label
+```
+
+The raw integer `order_status` is preserved alongside the label column
+to keep filtering performant in Metabase.
+
+**Consequences:**
+
+- `accepted_values` test on `order_status` in staging remains on integers (1, 2, 3, 4)
+- The label column is introduced at the intermediate layer — never in staging
+- Mart models downstream of `int_orders__enriched` expose `order_status_label` directly
 
 ---
 

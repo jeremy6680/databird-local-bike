@@ -34,7 +34,7 @@ models:
           - not_null
 
       - name: order_status
-        description: "Order status code (integer). 1=Status_1, 2=Status_2, 3=Status_3, 4=Completed."
+        description: "Order status code (integer). 1=Pending, 2=Processing, 3=Rejected, 4=Completed."
         data_tests:
           - not_null
           - accepted_values:
@@ -50,7 +50,7 @@ models:
           - accepted_values:
               name: unexpected_order_status_label
               arguments:
-                values: ["Status_1", "Status_2", "Status_3", "Completed"]
+                values: ["Pending", "Processing", "Rejected", "Completed"]
 
       - name: order_date
         description: "Date the order was placed."
