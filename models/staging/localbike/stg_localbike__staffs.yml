@@ -63,5 +63,6 @@ models:
         data_tests:
           - not_null
           - accepted_values:
+              name: unexpected_status_label
               arguments:
                 values: ["Active", "Inactive"]
