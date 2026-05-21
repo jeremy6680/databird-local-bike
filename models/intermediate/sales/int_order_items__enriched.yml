@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: int_order_items__enriched
+    description: "{{ doc('int_order_items__enriched') }}"
+
+    data_tests:
+      # Grain check: order_id + item_id must form a unique composite key
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - order_id
+            - item_id
+
+    columns:
+      - name: order_id
+        description: "Foreign key to stg_localbike__orders."
+        data_tests:
+          - not_null
+
+      - name: item_id
+        description: "Line item identifier within the order. Combined with order_id forms the primary key."
+        data_tests:
+          - not_null
+
+      - name: quantity
+        description: "Number of units ordered for this line item."
+        data_tests:
+          - not_null
+
+      - name: list_price
+        description: "Unit list price at the time of the order."
+        data_tests:
+          - not_null
+
+      - name: discount
+        description: "Discount rate applied to this line item (0.0 to 1.0)."
+        data_tests:
+          - not_null
+
+      - name: line_revenue
+        description: "Effective revenue for this line after discount: quantity * list_price * (1 - discount). Rounded to 2 decimal places."
+        data_tests:
+          - not_null
+
+      - name: product_id
+        description: "Foreign key to stg_localbike__products."
+        data_tests:
+          - not_null
+
+      - name: product_name
+        description: "Name of the product."
+
+      - name: model_year
+        description: "Model year of the product."
+
+      - name: product_list_price
+        description: "Catalogue list price of the product (from the products table, may differ from order list_price)."
+
+      - name: brand_id
+        description: "Foreign key to stg_localbike__brands."
+        data_tests:
+          - not_null
+
+      - name: brand_name
+        description: "Name of the brand."
+
+      - name: category_id
+        description: "Foreign key to stg_localbike__categories."
+        data_tests:
+          - not_null
+
+      - name: category_name
+        description: "Name of the product category."

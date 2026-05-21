@@ -1,0 +1,98 @@
+version: 2
+
+models:
+  - name: int_orders__enriched
+    description: "{{ doc('int_orders__enriched') }}"
+
+    columns:
+      - name: order_id
+        description: "Primary key — unique identifier for the order."
+        data_tests:
+          - not_null
+          - unique
+
+      - name: order_status
+        description: "Raw integer status code from the source (1=Pending, 2=Processing, 3=Rejected, 4=Completed)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+
+      - name: order_status_label
+        description: "Human-readable label decoded from order_status. Introduced at the intermediate layer (ADR-012)."
+        data_tests:
+          - not_null
+          - accepted_values:
+              name: unexpected_order_status_label
+              arguments:
+                values: ["Pending", "Processing", "Rejected", "Completed"]
+
+      - name: order_date
+        description: "Date the order was placed."
+        data_tests:
+          - not_null
+
+      - name: required_date
+        description: "Expected delivery date agreed with the customer."
+        data_tests:
+          - not_null
+
+      - name: shipped_date
+        description: "Actual shipment date. Null for orders not yet shipped (status 1, 2, or 3)."
+
+      - name: delivery_delay_days
+        description: "Difference in days between shipped_date and required_date. Positive = late, negative = early, null = not shipped."
+
+      - name: customer_id
+        description: "Foreign key to stg_localbike__customers."
+        data_tests:
+          - not_null
+
+      - name: customer_first_name
+        description: "Customer first name (from customers staging)."
+
+      - name: customer_last_name
+        description: "Customer last name (from customers staging)."
+
+      - name: customer_full_name
+        description: "Concatenation of first_name and last_name for display purposes."
+
+      - name: customer_email
+        description: "Customer email address."
+
+      - name: customer_phone
+        description: "Customer phone number."
+
+      - name: customer_city
+        description: "City of the customer's address."
+
+      - name: customer_state
+        description: "State of the customer's address."
+
+      - name: store_id
+        description: "Foreign key to stg_localbike__stores."
+        data_tests:
+          - not_null
+
+      - name: store_name
+        description: "Name of the store that handled the order."
+
+      - name: store_city
+        description: "City where the store is located."
+
+      - name: store_state
+        description: "State where the store is located."
+
+      - name: staff_id
+        description: "Foreign key to stg_localbike__staffs."
+        data_tests:
+          - not_null
+
+      - name: staff_first_name
+        description: "First name of the staff member who handled the order."
+
+      - name: staff_last_name
+        description: "Last name of the staff member who handled the order."

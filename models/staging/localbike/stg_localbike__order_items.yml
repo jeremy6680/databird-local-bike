@@ -18,6 +18,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: order_id_fkey
               to: ref('stg_localbike__orders')
               field: order_id
 

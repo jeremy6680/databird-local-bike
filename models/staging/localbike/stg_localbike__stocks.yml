@@ -18,6 +18,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: store_id_fkey
               to: ref('stg_localbike__stores')
               field: store_id
 
@@ -26,6 +27,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: product_id_fkey
               to: ref('stg_localbike__products')
               field: product_id
 

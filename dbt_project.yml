@@ -46,8 +46,10 @@ models:
     # Intermediate — joins and business logic, always views
     intermediate:
       +materialized: view
+      +schema: intermediate
 
     # Mart — aggregated, BI-ready tables connected to Metabase
     # Exception: orders.sql overrides this with incremental (see DECISIONS.md ADR-008)
     mart:
       +materialized: table
+      +schema: mart

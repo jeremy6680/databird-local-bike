@@ -20,6 +20,7 @@ models:
         data_tests:
           - not_null
           - relationships:
+              name: store_id_fkey
               to: ref('stg_localbike__stores')
               field: store_id
 
@@ -27,6 +28,7 @@ models:
         description: "Foreign key to stg_localbike__staffs (self-join). Nullable — NULL for top-level managers."
         data_tests:
           - relationships:
+              name: manager_id_fkey
               to: ref('stg_localbike__staffs')
               field: staff_id
 
@@ -61,5 +63,6 @@ models:
         data_tests:
           - not_null
           - accepted_values:
+              name: unexpected_status_label
               arguments:
                 values: ["Active", "Inactive"]
