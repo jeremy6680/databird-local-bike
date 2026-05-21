@@ -44,10 +44,10 @@ renamed AS (
         CAST(order_status AS INT64) AS order_status,
 
         CASE CAST(order_status AS INT64)
-            WHEN 1 THEN 'Status_1'  -- TODO: confirm label with DataBird
-            WHEN 2 THEN 'Status_2'  -- TODO: confirm label with DataBird
-            WHEN 3 THEN 'Status_3'  -- TODO: confirm label with DataBird
-            WHEN 4 THEN 'Completed' -- confirmed: shipped_date always present
+            WHEN 1 THEN 'Pending'  
+            WHEN 2 THEN 'Processing'  
+            WHEN 3 THEN 'Rejected' 
+            WHEN 4 THEN 'Completed' 
             ELSE 'Unknown'
         END AS order_status_label,
 
