@@ -6,7 +6,7 @@
 --              count for each store and calendar month. Powers the monthly
 --              revenue bar chart and store comparison KPIs in Metabase.
 --
--- Grain: store_id × order_year_month
+-- Grain: store_id × order_month
 -- Depends on: int_orders__with_revenue
 -- Consumed by: Metabase dashboard (revenue by store KPIs)
 -- =============================================================================
@@ -43,8 +43,9 @@ completed_orders AS (
         order_id,
         order_revenue,
 
-        -- Calendar month for monthly bucketing (format: YYYY-MM)
-        FORMAT_DATE('%Y-%m', order_date) AS order_year_month
+        -- First day of the calendar month — native DATE, enables Metabase
+        -- date filters and temporal grouping (replaces FORMAT_DATE string)
+        DATE_TRUNC(order_date, MONTH) AS order_month
 
     FROM int_orders
 
@@ -66,7 +67,7 @@ final AS (
         store_name,
         store_city,
         store_state,
-        order_year_month,
+        order_month,
 
         -- ------------------------------------------------------------------
         -- Metrics
@@ -88,7 +89,7 @@ final AS (
         store_name,
         store_city,
         store_state,
-        order_year_month
+        order_month
 
 )
 

@@ -4,7 +4,7 @@
 
 SELECT
     store_id,
-    order_year_month,
+    order_month,
     total_revenue
 FROM {{ ref('revenue_by_store') }}
 WHERE total_revenue <= 0

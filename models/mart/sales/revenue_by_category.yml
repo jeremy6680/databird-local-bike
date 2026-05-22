@@ -8,7 +8,7 @@ models:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
             - category_id
-            - order_year_month
+            - order_month
 
     columns:
       - name: category_id
@@ -21,10 +21,8 @@ models:
         data_tests:
           - not_null
 
-      - name: order_year_month
-        description: >
-          Calendar month in YYYY-MM format, derived from order_date.
-          Part of the composite grain key (category_id × order_year_month).
+      - name: order_month
+        description: First day of the calendar month (DATE). Produced by DATE_TRUNC(order_date, MONTH). Used for time-based filtering and monthly grouping in Metabase.
         data_tests:
           - not_null
 
