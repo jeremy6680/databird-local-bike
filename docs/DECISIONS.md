@@ -667,3 +667,34 @@ GitHub Actions runs `dbt docs generate`, then pushes the `target/` directory to 
 - dbt docs are always in sync with production: every merge to `main` triggers a redeploy
 - `models/overview.md` added to customise the dbt docs homepage (project description,
   architecture, stack, links to Metabase dashboard and GitHub repo)
+
+---
+
+### [ADR-023] Replace order_year_month (STRING) with order_month (DATE) in monthly mart models
+
+**Date:** 2026-05-22
+**Status:** Decided
+
+**Context:**
+`order_year_month` was computed via FORMAT_DATE('%Y-%m', order_date), producing
+a STRING (e.g. '2018-01'). Metabase does not recognise STRING columns as valid
+dates for native date filters, which prevented connecting a Date picker to the
+revenue_by_store and revenue_by_category charts.
+
+**Decision:**
+Replace `order_year_month` (STRING) with `order_month` (DATE) in revenue_by_store
+and revenue_by_category. The value is computed via DATE_TRUNC(order_date, MONTH),
+which returns the first day of the month as a native BigQuery DATE
+(e.g. 2018-01-01).
+
+**Rationale:**
+Monthly bucketing is a BI concern, not a dbt transformation. Exposing a native DATE
+lets Metabase control display granularity and activates native date filters across
+all affected charts.
+
+**Consequences:**
+
+- Column `order_year_month` removed from revenue_by_store and revenue_by_category
+- `order_month` is a DATE (first day of the month) — Metabase displays it as "January 2018" etc.
+- assert_revenue_by_store_positive_revenue.sql updated to reference order_month
+- Full-refresh required on both models on next deployment (handled by CD)
