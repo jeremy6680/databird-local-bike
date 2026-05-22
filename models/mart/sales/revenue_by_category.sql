@@ -7,7 +7,7 @@
 --              Powers the revenue breakdown by category (pie/donut chart)
 --              and category trend KPIs in Metabase.
 --
--- Grain: category_id × order_year_month
+-- Grain: category_id × order_month
 -- Depends on: int_order_items__enriched, int_orders__with_revenue
 -- Consumed by: Metabase dashboard (revenue by category KPIs)
 -- =============================================================================
@@ -66,8 +66,9 @@ completed_items AS (
         -- Units sold per order line
         oi.quantity AS units_sold,
 
-        -- Calendar month derived from order_date (format: YYYY-MM)
-        FORMAT_DATE('%Y-%m', o.order_date) AS order_year_month
+        -- First day of the calendar month — native DATE, enables Metabase
+        -- date filters and temporal grouping (replaces FORMAT_DATE string)
+        DATE_TRUNC(o.order_date, MONTH) AS order_month
 
     FROM int_order_items AS oi
     INNER JOIN int_orders AS o
@@ -87,7 +88,7 @@ final AS (
         -- ------------------------------------------------------------------
         category_id,
         category_name,
-        order_year_month,
+        order_month,
 
         -- ------------------------------------------------------------------
         -- Metrics
@@ -107,7 +108,7 @@ final AS (
     GROUP BY
         category_id,
         category_name,
-        order_year_month
+        order_month
 
 )
 
