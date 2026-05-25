@@ -2,7 +2,7 @@
 
 Folder and file structure of the project.
 Updated after each significant structural change.
-This file is git-ignored — it reflects the full local project layout, including files not committed to GitHub.
+It reflects the full local project layout, including files not committed to GitHub.
 
 ---
 
