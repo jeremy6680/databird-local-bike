@@ -202,6 +202,14 @@ Run `dbt run`, `dbt test`, and `dbt docs generate` as **separate steps** in both
 Project requires at least one incremental model. `orders` is the highest-volume table
 and is updated regularly as order statuses change.
 
+**Note:** The incremental materialisation on this model was added as a
+portfolio design choice, not as a DataBird requirement (the original case
+study does not mandate it). The source dataset is a static historical extract
+that will never receive new rows. The pattern is implemented here to demonstrate
+incremental model design — unique_key, merge strategy, is_incremental() filter —
+as it would apply in a live production context where new orders arrive daily
+and order statuses are updated over time.
+
 **Decision:**
 Materialise `orders` (mart layer) as `incremental` with:
 
