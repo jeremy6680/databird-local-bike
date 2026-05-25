@@ -5,33 +5,6 @@ Updated after each work session. Completed items are moved to the bottom.
 
 ---
 
-## 🔴 Now — BI and presentation
-
-- [x] **Set up Metabase locally** (Docker)
-  - Connect to `dbt_local_bike_prod` in BigQuery
-  - Build the 8 KPI charts (see CDC section 6.2)
-  - Build a dashboard with interactive filters (store, period, category)
-
-- [x] **Deploy Metabase on Hetzner VPS**
-  - Install Metabase (Docker or JAR) on the existing Hetzner instance
-  - Migrate or rebuild dashboards from local
-  - Validate connection to BigQuery prod dataset
-
-- [x] **Generate and serve dbt docs**
-  - `dbt docs generate && dbt docs serve` — verify DAG is clean
-  - Screenshot the full DAG for the final PR body
-
-- [x] **Peer review**
-  - Open PR on `main` with full body (context, DAG screenshot, no breaking changes)
-  - Request review from a bootcamp peer
-  - Address feedback, merge once approved + CI green
-
-- [ ] **Bonus — narrative analysis**
-  - Identify 3–5 actionable insights from the dashboards
-  - Write a short narrative (`analyses/revenue_insights.md` or similar) for the ops team
-
----
-
 ## ✅ Done
 
 - [x] Define project scope and architecture (CDC)
@@ -172,3 +145,28 @@ Updated after each work session. Completed items are moved to the bottom.
 - [x] Write `models/overview.md` — dbt docs homepage
 - [x] Deploy dbt docs to Netlify via GitHub Actions CLI (ADR-022)
   - Live: https://local-bike-docs.jeremymarchandeau.com/
+     
+### — BI and presentation
+
+- [x] **Set up Metabase locally** (Docker)
+  - Connect to `dbt_local_bike_prod` in BigQuery
+  - Build the 8 KPI charts (see CDC section 6.2)
+  - Build a dashboard with interactive filters (store, period, category)
+
+- [x] **Deploy Metabase on Hetzner VPS**
+  - Install Metabase (Docker or JAR) on the existing Hetzner instance
+  - Migrate or rebuild dashboards from local
+  - Validate connection to BigQuery prod dataset
+
+- [x] **Generate and serve dbt docs**
+  - `dbt docs generate && dbt docs serve` — verify DAG is clean
+  - Screenshot the full DAG for the final PR body
+
+- [x] **Peer review**
+  - Open PR on `main` with full body (context, DAG screenshot, no breaking changes)
+  - Request review from a bootcamp peer
+  - Address feedback, merge once approved + CI green
+
+- [x] **Bonus — narrative analysis**
+  - Identify 3–5 actionable insights from the dashboards
+  - Write a short narrative (`docs/INSIGHTS.md`) for the ops team
