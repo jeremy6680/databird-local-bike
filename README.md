@@ -18,7 +18,8 @@ professional cyclist (Tour de France). The company operates three stores across 
 
 This project is Local Bike's **first data system**: a fully tested and documented dbt pipeline
 that transforms raw transactional data into BI-ready mart tables, connected to a Metabase dashboard
-enabling the operations team to optimise sales and maximise revenue.
+enabling the operations team to optimise sales and maximise revenue. A narrative analysis of the
+key findings is available in [`docs/INSIGHTS.md`](docs/INSIGHTS.md).
 
 ---
 
@@ -169,6 +170,8 @@ using `--defer` to resolve unmodified upstream `ref()` calls against production 
 | [`docs/DECISIONS.md`](docs/DECISIONS.md)           | Architecture decision records (ADR-001 → ADR-022) |
 | [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md)         | Task backlog and priorities                       |
 | [`docs/STRUCTURE.md`](docs/STRUCTURE.md)           | Full project folder structure                     |
+| [`docs/INSIGHTS.md`](docs/INSIGHTS.md)             | Revenue analysis — insights and recommendations   |
+
 
 ---
 
