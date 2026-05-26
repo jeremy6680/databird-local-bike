@@ -17,6 +17,9 @@ local_bike/
 │       └── cd.yml                    # Full deploy — triggers on push to main
 │
 ├── analyses/                         # Ad-hoc SQL queries (not materialised by dbt)
+│   ├── stock_top_products.sql        # Top 3 products by revenue × stock levels per store
+│   ├── low_stock_analysis.sql        # Stock risk scored by sales velocity (restock priority)
+│   └── late_deliveries_by_store.sql  # Late delivery rate by store (completed orders only)
 │
 ├── docs/                             # ✅ committed — public project deliverables
 │   ├── DECISIONS.md                  # Architecture and technical decisions log (ADRs)
