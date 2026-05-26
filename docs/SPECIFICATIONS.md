@@ -112,9 +112,12 @@ orders     ──> staffs
 - `top_products` — product ranking by revenue / volume
 - `customer_summary` — per-customer summary (LTV, order count, average basket)
 
-#### Incremental model (required)
+#### Incremental model (portfolio addition)
 
-- **`orders`** (mart) — rationale: potentially high volume, order statuses updated regularly
+- **`orders`** (mart) — added as a portfolio design choice to demonstrate the incremental
+  pattern; not a DataBird requirement. The source dataset is static and will never receive
+  new rows. In a live production context, this model would be genuinely incremental as new
+  orders arrive daily and order statuses change over time.
   - `unique_key = 'order_id'`
   - `incremental_strategy = 'merge'` (BigQuery)
   - `is_incremental()` filter on `order_date`
