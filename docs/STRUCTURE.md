@@ -25,6 +25,7 @@ local_bike/
 │   ├── DECISIONS.md                  # Architecture and technical decisions log (ADRs)
 │   ├── NEXT_STEPS.md                 # Current priorities and task backlog
 │   ├── STRUCTURE.md                  # This file
+│   ├── INSIGHTS.md                   # Revenue analysis — insights and recommendations for the ops team
 │   └── SPECIFICATIONS.md             # Project specifications (scope, architecture, KPIs)
 │
 ├── logs/                             # ❌ git-ignored — dbt runtime logs
