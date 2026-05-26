@@ -46,6 +46,13 @@ key findings is available in [`docs/INSIGHTS.md`](docs/INSIGHTS.md).
 
 ---
 
+## AI assistance
+
+This project was developed with Claude (Anthropic) as an AI assistant — primarily for drafting `.yml` descriptions, setting up generic tests, structuring SQL models, and unblocking technical issues specific to BigQuery.
+Architecture decisions, business logic, and refactoring choices are my own.
+
+---
+
 ## Architecture
 
 Three-layer medallion architecture — sources → staging → intermediate → mart.
