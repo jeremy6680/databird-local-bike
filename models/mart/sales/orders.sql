@@ -8,6 +8,11 @@
 --              trend, on-time delivery, revenue, and operations KPIs in
 --              Metabase.
 --
+-- Sensitive data handling (ADR-024):
+--   - customer_city / customer_state removed — no longer available upstream
+--     (dropped in int_orders__enriched, see ADR-024)
+--   - customer_email never exposed in this model
+--
 -- Incremental strategy:
 --   - unique_key: order_id
 --   - strategy: merge (BigQuery)
@@ -115,8 +120,6 @@ final AS (
         customer_first_name,
         customer_last_name,
         customer_full_name,
-        customer_city,
-        customer_state,
 
         -- ---------------------------------------------------------------------
         -- Store dimensions

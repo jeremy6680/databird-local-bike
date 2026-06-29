@@ -30,7 +30,7 @@ First run: `dbt run --full-refresh --select orders`
 
 ### Derived columns
 
-- **`is_on_time`** — `TRUE` if `shipped_date <= required_date`, `FALSE` if late,
+- **`is_on_time`** — `TRUE` if `shipped_date is less or equal to required_date`, `FALSE` if late,
   `NULL` if the order has not yet shipped. Drives the on-time delivery KPI.
 - **`order_year_month`** — `FORMAT_DATE('%Y-%m', order_date)`. Used as the
   time axis for monthly bar charts in Metabase.
@@ -173,7 +173,7 @@ One row per `product_id`. Uniqueness enforced by `unique` + `not_null` tests.
 ### Purpose
 
 Summarises each customer's order history, lifetime value, and average basket.
-Powers the customer LTV and top customers KPIs in Metabase.
+Powers the customer LTV KPI in Metabase.
 
 ### Business logic
 
@@ -184,7 +184,20 @@ Powers the customer LTV and top customers KPIs in Metabase.
   do not generate revenue.
 - Customers with no completed orders get `lifetime_value = 0`,
   `completed_order_count = 0`, and `avg_basket = NULL`.
-- Revenue per order line: `list_price × quantity × (1 - discount)`
+- Revenue is pre-computed per order in `int_orders__with_revenue` (sum of
+  `list_price × quantity × (1 - discount)` across order lines), not
+  recalculated here.
+
+### Sensitive data handling (ADR-024)
+
+- `customer_full_name` is kept in plain text — required for ops outreach —
+  but **not exposed on any publicly shared Metabase dashboard or collection**.
+- `customer_city` / `customer_state` were removed entirely: combined with
+  a full name, customer-level geography increases re-identification risk
+  with no documented business need.
+- Any "top customers by LTV" view must live in an internal-only Metabase
+  collection. See ADR-024 addendum (2026-06-29) for the incident this
+  guards against.
 
 ### Grain
 
@@ -192,14 +205,13 @@ One row per `customer_id`. Uniqueness enforced by `unique` + `not_null` tests.
 
 ### Upstream dependencies
 
-| Model                       | Role                                     |
-| --------------------------- | ---------------------------------------- |
-| `int_orders__enriched`      | Customer dimensions, order dates, status |
-| `int_order_items__enriched` | Line-level pricing for LTV calculation   |
+| Model                      | Role                                                    |
+| -------------------------- | ------------------------------------------------------- |
+| `int_orders__with_revenue` | Customer dimensions, order dates, status, order revenue |
 
 ### Downstream consumers
 
-- Metabase — Customer LTV (ranking table)
-- Metabase — Average basket per customer (KPI card)
+- Metabase (internal collection) — Customer LTV (ranking table)
+- Metabase (internal collection) — Average basket per customer (KPI card)
 
 {% enddocs %}

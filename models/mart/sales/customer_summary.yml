@@ -16,12 +16,6 @@ models:
         data_tests:
           - not_null
 
-      - name: customer_city
-        description: City of the customer's billing address.
-
-      - name: customer_state
-        description: US state of the customer's billing address.
-
       - name: total_order_count
         description: >
           Total number of orders placed by this customer across all statuses

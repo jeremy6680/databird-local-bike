@@ -706,3 +706,111 @@ all affected charts.
 - `order_month` is a DATE (first day of the month) — Metabase displays it as "January 2018" etc.
 - assert_revenue_by_store_positive_revenue.sql updated to reference order_month
 - Full-refresh required on both models on next deployment (handled by CD)
+
+---
+
+### [ADR-024] Sensitive Data Handling for Customer PII in `customer_summary`
+
+**Status:** Accepted
+**Date:** 2026-06-29
+
+**Context**
+
+The `customer_summary` mart aggregates customer-level metrics (lifetime value,
+average basket, first/last order date) for the operations team. The underlying
+`customers` source table contains PII: first name, last name, email, phone,
+and address fields.
+
+As built, PII columns were not assessed for sensitivity before reaching
+downstream layers. This is a governance gap, made more material by the fact
+that the project's Metabase dashboard is publicly shared — any PII reaching a
+mart connected to a public collection is potentially exposed regardless of
+intent.
+
+Two questions needed answering:
+
+1. Which customer fields are actually required for the business use case
+   (ops follow-up, LTV analysis)?
+2. Which fields carry disproportionate risk relative to their analytical value?
+
+**Decision**
+
+Apply differentiated protection based on actual business need, rather than
+blanket masking:
+
+- **`email`**: hashed (SHA-256) at the staging layer (`stg_customers`), via a
+  reusable macro (`hash_pii`). Email carries no analytical value for LTV/basket/
+  order-date metrics and is the highest-risk field if leaked. Hashing here
+  means every downstream layer inherits the protection automatically — applied
+  once, as early as possible in the pipeline, rather than patched ad hoc at the
+  mart layer.
+- **`first_name` / `last_name`**: kept in plain text. The ops team needs to
+  identify and act on specific high-value or at-risk customers (targeted
+  retention outreach) — a legitimate requirement that hashing would break.
+  Risk is mitigated through access control instead of masking.
+- **`phone` / address fields**: excluded entirely from `int_orders__enriched`
+  and all downstream models. Never required by any mart, zero analytical
+  value — the correct control is exclusion, not masking.
+- **Access control**: `customer_summary` is restricted to an internal-only
+  Metabase collection. The public dashboard link exposes only store/category/
+  product-level aggregates (`revenue_by_store`, `revenue_by_category`,
+  `top_products`) — never row-level customer data.
+
+**Consequences**
+
+**Positive:**
+
+- No raw email reaches any mart or BI layer — protected even if a future
+  dashboard accidentally inherits public sharing settings
+- Customer name stays usable for the only use case that justifies its
+  presence, while being shielded from public exposure via access control
+- The trade-off is documented and defensible per field, not a uniform
+  "hash everything" response that would have broken the dashboard's purpose
+
+**Negative / trade-offs:**
+
+- Name protection depends entirely on Metabase permissions being correctly
+  maintained — a single point of failure that should be tested (verify the
+  public link does NOT resolve to the internal collection)
+- Hashed email cannot be reversed for legitimate cases (e.g., resending a
+  receipt) — if ever required, should move to tokenization with a secured
+  lookup table, not a one-way hash
+
+**Alternatives considered**
+
+- **Hash everything (name + email)**: rejected — destroys the ops use case
+  without a security gain proportional to the loss in utility
+- **BigQuery column-level security (policy tags + Data Catalog)**: more
+  "textbook," but disproportionate setup overhead for a solo capstone;
+  natural next step if this moved into a real multi-analyst environment
+- **No protection**: rejected once the public-dashboard exposure path was
+  identified
+
+#### Addendum (2026-06-29)
+
+Self-audit during governance review found the public Metabase dashboard
+included a "Top 20 Customers by LTV" card querying `customer_summary`
+directly:
+
+```
+    SELECT customer_id, customer_full_name, customer_city, customer_state,
+           total_order_count, first_order_date, last_order_date,
+           completed_order_count, lifetime_value, avg_basket
+    FROM dbt_local_bike_prod_mart.customer_summary
+    ORDER BY lifetime_value DESC
+    LIMIT 20
+```
+
+This card exposed full name, city, and state for real customers on a
+publicly shared link — a live instance of the exact risk this ADR was
+written to address.
+
+**Remediation (2026-06-29):** card removed from the public dashboard.
+[Underlying question moved to an internal-only collection — confirm done].
+[Public link re-verified in an incognito session — confirm done].
+
+The underlying analysis (identifying high-LTV customers) remains valid and
+useful — only its publication channel was wrong. If a "top customers" type
+signal is still wanted on the public-facing dashboard, the correct version
+shows an aggregate (e.g. revenue concentration by percentile) with no
+customer-level identifiers, rather than a row-level export.
