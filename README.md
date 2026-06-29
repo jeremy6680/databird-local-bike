@@ -174,7 +174,7 @@ using `--defer` to resolve unmodified upstream `ref()` calls against production 
 | File                                               | Description                                       |
 | -------------------------------------------------- | ------------------------------------------------- |
 | [`docs/SPECIFICATIONS.md`](docs/SPECIFICATIONS.md) | Project scope, architecture, KPIs                 |
-| [`docs/DECISIONS.md`](docs/DECISIONS.md)           | Architecture decision records (ADR-001 → ADR-022) |
+| [`docs/DECISIONS.md`](docs/DECISIONS.md)           | Architecture decision records (ADR-001 → ADR-024) |
 | [`docs/NEXT_STEPS.md`](docs/NEXT_STEPS.md)         | Task backlog and priorities                       |
 | [`docs/STRUCTURE.md`](docs/STRUCTURE.md)           | Full project folder structure                     |
 | [`docs/INSIGHTS.md`](docs/INSIGHTS.md)             | Revenue analysis — insights and recommendations   |
