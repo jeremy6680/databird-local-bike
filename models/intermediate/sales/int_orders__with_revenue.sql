@@ -21,6 +21,11 @@
     - int_orders__enriched       (base — all order + customer + store + staff dims)
     - int_order_items__enriched  (LEFT JOIN — aggregated to order grain)
 
+  Sensitive data handling (ADR-024):
+    Customer PII columns are passed through unchanged from
+    int_orders__enriched, which already applies the protections:
+    customer_email_hash (hashed), customer_phone/city/state (removed).
+
   Downstream consumers:
     - mart/sales/orders.sql
     - mart/sales/revenue_by_store.sql
@@ -100,10 +105,7 @@ final AS (
         o.customer_first_name,
         o.customer_last_name,
         o.customer_full_name,
-        o.customer_email,
-        o.customer_phone,
-        o.customer_city,
-        o.customer_state,
+        o.customer_email_hash,
 
         -- ----------------------------------------------------------------
         -- Store dimensions

@@ -1,11 +1,20 @@
 {% docs stg_localbike__customers %}
 Staging model for the `customers` source table.
 
-One row per customer. Light cleaning only — no joins, no aggregations.
+One row per customer. Light cleaning plus sensitive data handling — no
+joins, no aggregations.
 
 **Cleaning applied:**
 
-- `zip_code` cast to `STRING` (postal code — not a number, no arithmetic)
+- `email` hashed (SHA-256) via the `hash_pii` macro
+
+**Sensitive data handling (ADR-024):**
+
+- `email` → exposed as `email_hash`, never raw past this layer
+- `phone`, `street`, `city`, `state`, `zip_code` → excluded entirely, no
+  downstream model requires them
+- `first_name` / `last_name` → kept in plain text (legitimate ops use
+  case), protected via Metabase access control rather than masking
 
 **Grain:** one row per `customer_id`
 

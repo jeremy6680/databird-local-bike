@@ -20,22 +20,10 @@ models:
       - name: last_name
         description: Customer's last name.
 
-      - name: phone
-        description: Customer's phone number. May be null.
-
-      - name: email
-        description: Customer's email address. May be null.
-
-      - name: street
-        description: Street address of the customer.
-
-      - name: city
-        description: City of the customer's address.
-
-      - name: state
-        description: US state of the customer's address (abbreviated, e.g. CA, NY, TX).
-
-      - name: zip_code
+      - name: email_hash
         description: >
-          ZIP code of the customer's address.
-          Cast to STRING from INTEGER in the source — treated as a code, not a number.
+          SHA-256 hash of the customer's email address (see ADR-024).
+          May be null — preserves the source column's nullability.
+          Not reversible; if a legitimate need to recover the original email
+          ever arises, move to tokenization with a secured lookup table
+          instead of reverting to plain text.

@@ -33,6 +33,13 @@ no orders are silently dropped if a FK is orphaned.
 - **`delivery_delay_days`** — computed as `shipped_date - required_date` in days.
   Positive values indicate late delivery. Null when the order has not been shipped.
 
+### Sensitive data handling (ADR-024)
+
+Customer PII protections are already applied upstream in
+`stg_localbike__customers` (email hashed, phone/address excluded) — this
+model inherits them as-is and adds no further exposure. `customer_full_name`
+is the only customer PII passed through in plain text; see ADR-024 for why.
+
 ### Downstream consumers
 
 - `mart/sales/orders` (incremental)
@@ -115,6 +122,12 @@ can compute both activity metrics (all statuses) and financial metrics
 | `order_revenue`    | Total order revenue after discounts — NULL if not completed |
 | `order_units_sold` | Total units across all lines — NULL if not completed        |
 | `order_line_count` | Number of product lines — populated for all statuses        |
+
+### Sensitive data handling (ADR-024)
+
+Customer PII columns are passed through unchanged from
+`int_orders__enriched` (already protected upstream). No additional handling
+occurs at this layer.
 
 ### Upstream dependencies
 

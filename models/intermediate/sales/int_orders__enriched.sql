@@ -7,6 +7,17 @@
 
   Grain: one row per order (order_id is unique).
 
+  Sensitive data handling (ADR-024):
+    - customer_email: arrives pre-hashed from stg_localbike__customers,
+      exposed here as customer_email_hash — never raw past staging
+    - customer_phone: removed entirely — dropped at staging, no downstream
+      model required it
+    - customer_city / customer_state: removed — combined with
+      customer_full_name, precise customer-level geography increases
+      re-identification risk with no stated business use case
+    - customer_full_name: kept — legitimate ops use case (targeted
+      outreach), protected via Metabase access control rather than masking
+
   Joins:
     - stg_localbike__orders        (base table)
     - stg_localbike__customers     (LEFT JOIN — customer details)
@@ -100,10 +111,8 @@ enriched AS (
             COALESCE(customers.last_name, '')
         ) AS customer_full_name,
 
-        customers.email AS customer_email,
-        customers.phone AS customer_phone,
-        customers.city  AS customer_city,
-        customers.state AS customer_state,
+        -- Hashed at staging (ADR-024) — never raw past this point
+        customers.email_hash AS customer_email_hash,
 
         -- ----------------------------------------------------------------
         -- Store details (LEFT JOIN)

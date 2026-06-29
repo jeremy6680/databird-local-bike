@@ -6,6 +6,13 @@
 --              average basket, and first/last order dates. Powers the customer
 --              LTV and top customers KPIs in Metabase.
 --
+-- Sensitive data handling (ADR-024):
+--   - customer_city / customer_state removed — combined with
+--     customer_full_name, customer-level geography increases
+--     re-identification risk with no stated business use case
+--   - customer_full_name kept — legitimate ops use case, protected via
+--     Metabase access control (internal-only collection), not masking
+--
 -- Grain: customer_id
 -- Depends on: int_orders__with_revenue
 -- Consumed by: Metabase dashboard (customer KPIs)
@@ -84,9 +91,7 @@ customer_dims AS (
 
     SELECT DISTINCT
         customer_id,
-        customer_full_name,
-        customer_city,
-        customer_state
+        customer_full_name
 
     FROM int_orders
 
@@ -108,8 +113,6 @@ final AS (
         -- Customer dimensions
         -- ------------------------------------------------------------------
         cd.customer_full_name,
-        cd.customer_city,
-        cd.customer_state,
 
         -- ------------------------------------------------------------------
         -- Order activity metrics (all statuses)
