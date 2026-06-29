@@ -13,6 +13,12 @@
 --     (dropped in int_orders__enriched, see ADR-024)
 --   - customer_email never exposed in this model
 --
+-- Schema evolution: on_schema_change = 'sync_all_columns' added after this
+-- exact column removal broke the existing incremental table's MERGE
+-- statement in CI (column present in destination, absent from new source
+-- query). This makes future column drops/adds self-healing on the next
+-- run, instead of requiring a manual --full-refresh.
+--
 -- Incremental strategy:
 --   - unique_key: order_id
 --   - strategy: merge (BigQuery)
@@ -30,6 +36,7 @@
         materialized         = 'incremental',
         unique_key           = 'order_id',
         incremental_strategy = 'merge',
+        on_schema_change     = 'sync_all_columns',
         partition_by         = {
             'field': 'order_date',
             'data_type': 'date',
